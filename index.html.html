@@ -93,21 +93,25 @@
 </header>
 
 <main class="flex-1 flex overflow-hidden relative">
-    
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
     <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
     <p class="mt-2 text-xs font-bold text-outline-variant">데이터베이스 연동으로 약 3~5초 정도 소요될 수 있습니다.</p>
 </div>
 
-<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0">
+<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
 <div class="p-6 pb-2 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
 </div>
 </div>
-<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4">
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0">
+</div>
+<div class="p-4 border-t border-outline-variant/10 bg-white shrink-0 flex flex-col items-center">
+    <div id="pagination-container" class="flex items-center justify-center gap-1">
+        </div>
+    <p id="pagination-info" class="text-[10px] text-center text-outline-variant mt-2 font-medium">Page 1 of 1</p>
 </div>
 </section>
 
@@ -120,6 +124,10 @@
 <span class="material-symbols-outlined text-base">call</span>
 <span id="detail-phone" class="flex items-center gap-3 text-lg font-bold text-on-surface">-</span>
 </div>
+</div>
+<div class="flex gap-2">
+<button class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
+<button class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
 </div>
 </div>
 <div class="overflow-hidden rounded-xl border border-outline-variant/10 shadow-sm">
@@ -151,15 +159,52 @@
 </div>
 
 <div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="new-customer-modal">
-<div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low">
+<div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
 <h3 class="text-xl font-headline font-bold text-primary-container">신규 고객 등록</h3>
 <button class="material-symbols-outlined text-outline" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
 </div>
-<form id="new-customer-form" class="p-6 space-y-4">
-<input id="new-name" class="w-full px-4 py-2 bg-surface-container-low rounded-xl" placeholder="고객명" type="text"/>
-<input id="new-phone" class="w-full px-4 py-2 bg-surface-container-low rounded-xl" placeholder="전화번호" type="tel" required/>
-<button class="w-full py-2.5 bg-primary-container text-white font-bold rounded-xl" type="submit">등록</button>
+<form id="new-customer-form" class="p-8 space-y-5">
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<option>계약완료</option><option>대기</option><option>보류</option><option>타변</option><option>부재중</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
+<textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
+</div>
+<div class="pt-4 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">등록 완료</button>
+</div>
 </form>
 </div>
 </div>
@@ -175,7 +220,9 @@
             selectedYear: 'all',
             selectedMonth: 'all',
             crmOnly: false,
-            focusOnly: false
+            focusOnly: false,
+            currentPage: 1, // 페이지네이션 현재 페이지
+            itemsPerPage: 30 // 페이지당 30개씩
         };
 
         function formatPhone(raw) {
@@ -187,51 +234,30 @@
             return v;
         }
 
-        // 지능형 투트랙 날짜 파싱 엔진 (구글 ISO 날짜 대응 완료)
+        // 지은 님 요청 완벽 반영: 원본 텍스트는 보존하되 에러는 거르고, 필터용 숫자를 뒷단에서 분리
         function processDateText(raw) {
             const s = String(raw || '').trim();
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
+            let clean = s; 
             let y = 2026; 
             let m = null;
-            let clean = s;
 
-            // 1. 구글 시트가 맘대로 바꾼 ISO 날짜 (예: 1899-12-30T15:00:00.000Z)
             const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
             if (isoMatch) {
                 let parsedYear = parseInt(isoMatch[1], 10);
                 m = parseInt(isoMatch[2], 10);
-                let d = parseInt(isoMatch[3], 10);
-                
-                // 쓰레기 연도(1899, 1900)는 버리고 2026년으로 간주, 화면에는 달/일만 깔끔하게 출력
                 if (parsedYear === 1899 || parsedYear === 1900 || parsedYear === 1890) {
-                    y = 2026; 
-                    clean = `${m}월 ${d}일`; 
+                    clean = '-'; // 쓰레기 날짜는 화면에 하이픈으로 출력 (텍스트 파괴 안함)
                 } else {
-                    y = parsedYear;
-                    clean = `${y}년 ${m}월 ${d}일`;
+                    clean = `${parsedYear}년 ${m}월 ${parseInt(isoMatch[3], 10)}일`;
                 }
-                return { cleanText: clean, year: y, month: m };
-            }
-
-            // 2. 텍스트 형식 (예: 03/07/토, 2025.03.07, 3//6)
-            const ymdMatch = s.match(/(\d{4})[\.\-년\s]+(\d{1,2})/);
-            if (ymdMatch) {
-                y = parseInt(ymdMatch[1], 10);
-                m = parseInt(ymdMatch[2], 10);
             } else {
-                const mdMatch = s.match(/(\d{1,2})[\/\.월\s]+(\d{1,2})/);
-                if (mdMatch) {
-                    m = parseInt(mdMatch[1], 10);
-                } else {
-                    const mMatch = s.match(/(\d{1,2})월/);
-                    if (mMatch) m = parseInt(mMatch[1], 10);
-                }
-            }
-
-            // 혹시 텍스트 안에 1899가 끼어있다면 깔끔하게 치환
-            if (clean.includes('1899') || clean.includes('1900') || clean.includes('1890')) {
-                clean = m ? `${m}월` : '-';
+                // 텍스트에서 연도, 월 필터용 숫자 추출
+                const ymdMatch = s.match(/(\d{4})[\.\-년\s]+(\d{1,2})/);
+                if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
+                else if (s.match(/^(\d{1,2})\//)) { m = parseInt(s.match(/^(\d{1,2})\//)[1], 10); y = new Date().getFullYear(); }
+                else if (s.match(/(\d{1,2})월/)) { m = parseInt(s.match(/(\d{1,2})월/)[1], 10); y = new Date().getFullYear(); }
             }
 
             return { cleanText: clean, year: y, month: m };
@@ -259,25 +285,73 @@
             if (!record) return;
             document.getElementById('detail-title').textContent = `${record.name} 고객 상세`;
             document.getElementById('detail-phone').textContent = record.phone || '-';
-            document.getElementById('detail-date').textContent = record.dbEntryDateRaw;
+            document.getElementById('detail-date').textContent = record.dbEntryDateRaw; // 원본 텍스트 그대로 출력
             document.getElementById('detail-counselor1').textContent = record.firstCounselor;
             document.getElementById('history-container').innerHTML = ''; 
         }
 
-        function renderList(records) {
+        // 30개 단위 페이지네이션 그리기
+        function renderPagination(totalItems) {
+            const totalPages = Math.max(1, Math.ceil(totalItems / state.itemsPerPage));
+            const container = document.getElementById('pagination-container');
+            const info = document.getElementById('pagination-info');
+            container.innerHTML = '';
+            info.textContent = `Page ${state.currentPage} of ${totalPages} (${totalItems}명)`;
+
+            const createBtn = (text, disabled, isCurrent, onClick) => {
+                const btn = document.createElement('button');
+                btn.innerHTML = text;
+                btn.disabled = disabled;
+                if (isCurrent) {
+                    btn.className = 'w-8 h-8 rounded-lg bg-primary-container text-white text-xs font-bold font-body mx-0.5';
+                } else {
+                    btn.className = disabled 
+                        ? 'p-1.5 text-outline opacity-30 cursor-not-allowed mx-0.5' 
+                        : 'w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface-variant text-xs font-bold font-body transition-colors mx-0.5';
+                }
+                if (!disabled && onClick) btn.addEventListener('click', onClick);
+                return btn;
+            };
+
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_left</span>', state.currentPage === 1, false, () => {
+                state.currentPage--; renderList();
+            }));
+
+            // 간단하게 최대 5개 페이지 버튼 노출
+            let startPage = Math.max(1, state.currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            for (let i = startPage; i <= endPage; i++) {
+                container.appendChild(createBtn(i, false, i === state.currentPage, () => {
+                    state.currentPage = i; renderList();
+                }));
+            }
+
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_right</span>', state.currentPage === totalPages, false, () => {
+                state.currentPage++; renderList();
+            }));
+        }
+
+        function renderList() {
             const container = document.getElementById('prospect-list-container');
-            document.getElementById('badge-total-count').textContent = `전체 ${records.length}명`;
+            document.getElementById('badge-total-count').textContent = `전체 ${state.filteredRecords.length}명`;
             container.innerHTML = '';
 
-            records.forEach((record, idx) => {
-                const isActive = idx === state.selectedIndex;
+            // 30개 단위 분할
+            const startIndex = (state.currentPage - 1) * state.itemsPerPage;
+            const endIndex = startIndex + state.itemsPerPage;
+            const pageRecords = state.filteredRecords.slice(startIndex, endIndex);
+
+            pageRecords.forEach((record, idxInPage) => {
+                const globalIdx = startIndex + idxInPage; // 원본 배열에서의 실제 인덱스
+                const isActive = globalIdx === state.selectedIndex;
                 const item = document.createElement('div');
                 
-                // 디자인 보존 (mb-3으로 카드 사이 간격 확보)
                 item.className = isActive
                     ? 'p-4 bg-surface-container-highest cursor-pointer border-2 border-primary-container rounded-2xl shadow-md transition-all mb-3'
                     : 'p-4 hover:bg-surface-container-low cursor-pointer border-b-2 border-outline-variant/10 rounded-2xl transition-all mb-3';
-                item.dataset.index = String(idx);
+                item.dataset.index = String(globalIdx);
 
                 const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
 
@@ -294,10 +368,11 @@
                 `;
                 container.appendChild(item);
             });
+
+            renderPagination(state.filteredRecords.length);
         }
 
         function applyFilters() {
-            // 지은 님 요청사항: 집중관리 기준 완벽 반영
             const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
             
             state.filteredRecords = state.allRecords.filter((r) => {
@@ -307,7 +382,9 @@
                 const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
                 return yOk && mOk && crmOk && focusOk;
             });
-            state.selectedIndex = 0;
+            
+            state.currentPage = 1; // 필터링 시 무조건 1페이지로 리셋
+            state.selectedIndex = 0; // 선택 카드도 맨 위로 리셋
 
             document.getElementById('filter-crm-btn').className = state.crmOnly 
                 ? 'px-4 py-1.5 bg-primary-container text-white text-sm font-bold rounded-full transition-all' 
@@ -318,33 +395,39 @@
         }
 
         function bindEvents() {
-            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
-            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
-            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
-            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
             document.getElementById('nav-all-prospects').addEventListener('click', () => {
                 state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all';
                 document.getElementById('filter-year-select').value = 'all';
                 document.getElementById('filter-month-select').value = 'all';
-                applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]);
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
             });
 
             document.getElementById('prospect-list-container').addEventListener('click', (e) => {
                 const card = e.target.closest('[data-index]');
                 if (!card) return;
                 state.selectedIndex = Number(card.dataset.index);
-                renderList(state.filteredRecords);
+                renderList(); // 선택 카드 CSS 갱신
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
+                // 오늘 날짜 셋팅 추가 보완 필요시 구현
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
                 state.allRecords.unshift(newRec);
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 document.getElementById('nav-all-prospects').click();
             });
+            
+            // 날짜 자동 세팅
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('today-date');
+            if(dateInput) dateInput.value = today;
         }
 
         try {
@@ -353,11 +436,10 @@
             const payload = await res.json();
             
             state.allRecords = (payload.records || []).map(normalizeRecord);
-            applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); bindEvents();
+            applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); bindEvents();
         } catch (err) { 
             console.error(err); 
         } finally {
-            // 로딩 종료 시 애니메이션과 함께 오버레이 제거
             const loadingOverlay = document.getElementById('loading-overlay');
             loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
