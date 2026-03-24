@@ -36,6 +36,7 @@
     </script>
 </head>
 <body class="bg-surface text-on-surface overflow-hidden">
+
 <aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 h-screen w-64 border-r-0 bg-[#faf8ff] z-50">
 <div class="flex items-center gap-3 mb-10 px-2">
 <div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg">
@@ -63,8 +64,8 @@
 </div>
 </aside>
 
-<div class="ml-64 min-h-screen flex flex-col">
-<header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm">
+<div class="ml-64 h-screen flex flex-col overflow-hidden">
+<header class="h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm shrink-0">
 <div class="flex items-center gap-6 flex-1">
 <div class="relative w-full max-w-sm">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
@@ -91,21 +92,22 @@
 </div>
 </header>
 
-<main class="mt-16 flex flex-1 overflow-hidden h-[calc(100vh-64px)] relative">
+<main class="flex-1 flex overflow-hidden relative">
     
-<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/80 backdrop-blur-sm transition-opacity duration-300">
+<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-sm font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 로딩 중...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
+    <p class="mt-2 text-xs font-bold text-outline-variant">데이터베이스 연동으로 약 3~5초 정도 소요될 수 있습니다.</p>
 </div>
 
-<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
+<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0">
 <div class="p-6 pb-2 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
 </div>
 </div>
-<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4">
 </div>
 </section>
 
@@ -185,19 +187,54 @@
             return v;
         }
 
+        // 지능형 투트랙 날짜 파싱 엔진 (구글 ISO 날짜 대응 완료)
         function processDateText(raw) {
             const s = String(raw || '').trim();
-            if (s.includes('1899') || s.includes('1900') || s.includes('1890')) {
-                return { cleanText: '-', year: null, month: null };
-            }
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
-            let y = null; let m = null;
+            let y = 2026; 
+            let m = null;
+            let clean = s;
+
+            // 1. 구글 시트가 맘대로 바꾼 ISO 날짜 (예: 1899-12-30T15:00:00.000Z)
+            const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+            if (isoMatch) {
+                let parsedYear = parseInt(isoMatch[1], 10);
+                m = parseInt(isoMatch[2], 10);
+                let d = parseInt(isoMatch[3], 10);
+                
+                // 쓰레기 연도(1899, 1900)는 버리고 2026년으로 간주, 화면에는 달/일만 깔끔하게 출력
+                if (parsedYear === 1899 || parsedYear === 1900 || parsedYear === 1890) {
+                    y = 2026; 
+                    clean = `${m}월 ${d}일`; 
+                } else {
+                    y = parsedYear;
+                    clean = `${y}년 ${m}월 ${d}일`;
+                }
+                return { cleanText: clean, year: y, month: m };
+            }
+
+            // 2. 텍스트 형식 (예: 03/07/토, 2025.03.07, 3//6)
             const ymdMatch = s.match(/(\d{4})[\.\-년\s]+(\d{1,2})/);
-            if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
-            else if (s.match(/^(\d{1,2})\//)) { m = parseInt(s.match(/^(\d{1,2})\//)[1], 10); y = new Date().getFullYear(); }
-            else if (s.match(/(\d{1,2})월/)) { m = parseInt(s.match(/(\d{1,2})월/)[1], 10); y = new Date().getFullYear(); }
-            return { cleanText: s, year: y, month: m };
+            if (ymdMatch) {
+                y = parseInt(ymdMatch[1], 10);
+                m = parseInt(ymdMatch[2], 10);
+            } else {
+                const mdMatch = s.match(/(\d{1,2})[\/\.월\s]+(\d{1,2})/);
+                if (mdMatch) {
+                    m = parseInt(mdMatch[1], 10);
+                } else {
+                    const mMatch = s.match(/(\d{1,2})월/);
+                    if (mMatch) m = parseInt(mMatch[1], 10);
+                }
+            }
+
+            // 혹시 텍스트 안에 1899가 끼어있다면 깔끔하게 치환
+            if (clean.includes('1899') || clean.includes('1900') || clean.includes('1890')) {
+                clean = m ? `${m}월` : '-';
+            }
+
+            return { cleanText: clean, year: y, month: m };
         }
 
         function normalizeRecord(rec, idx) {
@@ -236,6 +273,7 @@
                 const isActive = idx === state.selectedIndex;
                 const item = document.createElement('div');
                 
+                // 디자인 보존 (mb-3으로 카드 사이 간격 확보)
                 item.className = isActive
                     ? 'p-4 bg-surface-container-highest cursor-pointer border-2 border-primary-container rounded-2xl shadow-md transition-all mb-3'
                     : 'p-4 hover:bg-surface-container-low cursor-pointer border-b-2 border-outline-variant/10 rounded-2xl transition-all mb-3';
@@ -259,7 +297,7 @@
         }
 
         function applyFilters() {
-            // [집중관리 타겟 목록 완벽 업데이트]
+            // 지은 님 요청사항: 집중관리 기준 완벽 반영
             const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
             
             state.filteredRecords = state.allRecords.filter((r) => {
@@ -310,10 +348,6 @@
         }
 
         try {
-            // 로딩 UI 시작 시 노출
-            const loadingOverlay = document.getElementById('loading-overlay');
-            loadingOverlay.classList.remove('hidden');
-
             const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
             const res = await fetch(url, { method: 'GET' });
             const payload = await res.json();
@@ -323,7 +357,7 @@
         } catch (err) { 
             console.error(err); 
         } finally {
-            // 데이터 로딩 완료 시 오버레이 숨김
+            // 로딩 종료 시 애니메이션과 함께 오버레이 제거
             const loadingOverlay = document.getElementById('loading-overlay');
             loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
