@@ -12,7 +12,6 @@
         body { font-family: 'Pretendard', sans-serif; }
         .font-gmarket { font-family: 'Gmarket_Sans', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        /* 깔끔한 커스텀 스크롤바 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
@@ -92,15 +91,21 @@
 </div>
 </header>
 
-<main class="mt-16 flex flex-1 overflow-hidden h-[calc(100vh-64px)]">
-<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0">
+<main class="mt-16 flex flex-1 overflow-hidden h-[calc(100vh-64px)] relative">
+    
+<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/80 backdrop-blur-sm transition-opacity duration-300">
+    <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
+    <p class="mt-4 text-sm font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 로딩 중...</p>
+</div>
+
+<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
 <div class="p-6 pb-2 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
 </div>
 </div>
-<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4">
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
 </div>
 </section>
 
@@ -180,37 +185,18 @@
             return v;
         }
 
-        // [핵심] 지은 님 아이디어: 투트랙 지능형 날짜 추출 엔진
         function processDateText(raw) {
             const s = String(raw || '').trim();
-            
-            // 1. 엑셀의 잘못된 과거 데이터 찌꺼기는 여기서 원천 차단 (-)
             if (s.includes('1899') || s.includes('1900') || s.includes('1890')) {
                 return { cleanText: '-', year: null, month: null };
             }
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
-            let y = null;
-            let m = null;
-
-            // 2. YYYY.MM.DD 또는 YYYY-MM-DD 형태 분석
+            let y = null; let m = null;
             const ymdMatch = s.match(/(\d{4})[\.\-년\s]+(\d{1,2})/);
-            if (ymdMatch) {
-                y = parseInt(ymdMatch[1], 10);
-                m = parseInt(ymdMatch[2], 10);
-            } 
-            // 3. MM/DD 형태 (예: 03/07/토)에서 월만 쏙 뽑아내기
-            else if (s.match(/^(\d{1,2})\//)) {
-                m = parseInt(s.match(/^(\d{1,2})\//)[1], 10);
-                y = new Date().getFullYear();
-            }
-            // 4. X월 형태에서 월만 뽑아내기
-            else if (s.match(/(\d{1,2})월/)) {
-                m = parseInt(s.match(/(\d{1,2})월/)[1], 10);
-                y = new Date().getFullYear();
-            }
-
-            // 화면 노출용(cleanText)은 원본 보존, 필터 계산용은 숫자 반환
+            if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
+            else if (s.match(/^(\d{1,2})\//)) { m = parseInt(s.match(/^(\d{1,2})\//)[1], 10); y = new Date().getFullYear(); }
+            else if (s.match(/(\d{1,2})월/)) { m = parseInt(s.match(/(\d{1,2})월/)[1], 10); y = new Date().getFullYear(); }
             return { cleanText: s, year: y, month: m };
         }
 
@@ -218,7 +204,6 @@
             const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
             const phone = formatPhone(rec.phone || rec.연락처 || '');
             const name = String(rec.name || rec.이름 || '').trim();
-            
             return {
                 id: idx,
                 name: name || phone || '-',
@@ -251,7 +236,6 @@
                 const isActive = idx === state.selectedIndex;
                 const item = document.createElement('div');
                 
-                // 디자인 복구: 곡선이 들어간 둥근 카드(rounded-2xl)와 구분선 여백(mb-3) 완벽 적용
                 item.className = isActive
                     ? 'p-4 bg-surface-container-highest cursor-pointer border-2 border-primary-container rounded-2xl shadow-md transition-all mb-3'
                     : 'p-4 hover:bg-surface-container-low cursor-pointer border-b-2 border-outline-variant/10 rounded-2xl transition-all mb-3';
@@ -275,11 +259,14 @@
         }
 
         function applyFilters() {
+            // [집중관리 타겟 목록 완벽 업데이트]
+            const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
+            
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
                 const crmOk = state.crmOnly ? r.showCrmBadge === true : true;
-                const focusOk = state.focusOnly ? ['계약완료', '대기', '보류'].includes(r.contractStatus) : true;
+                const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
                 return yOk && mOk && crmOk && focusOk;
             });
             state.selectedIndex = 0;
@@ -293,15 +280,11 @@
         }
 
         function bindEvents() {
-            // 연도 및 월 필터 드롭다운 이벤트
             document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
-            
-            // 토글 버튼 이벤트
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
             
-            // 가망 고객 탭을 누르면 전체 리스트로 복귀 (필터 완전 초기화)
             document.getElementById('nav-all-prospects').addEventListener('click', () => {
                 state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all';
                 document.getElementById('filter-year-select').value = 'all';
@@ -309,7 +292,6 @@
                 applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]);
             });
 
-            // 카드 클릭 시 상세 창 변경
             document.getElementById('prospect-list-container').addEventListener('click', (e) => {
                 const card = e.target.closest('[data-index]');
                 if (!card) return;
@@ -318,23 +300,34 @@
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
-            // 신규 등록 로딩 없는 낙관적 업데이트
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
                 state.allRecords.unshift(newRec);
                 document.getElementById('new-customer-modal').classList.add('hidden');
-                document.getElementById('nav-all-prospects').click(); // 등록 완료 시 초기화하여 최상단에 보여줌
+                document.getElementById('nav-all-prospects').click();
             });
         }
 
         try {
+            // 로딩 UI 시작 시 노출
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.remove('hidden');
+
             const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
             const res = await fetch(url, { method: 'GET' });
             const payload = await res.json();
+            
             state.allRecords = (payload.records || []).map(normalizeRecord);
             applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); bindEvents();
-        } catch (err) { console.error(err); }
+        } catch (err) { 
+            console.error(err); 
+        } finally {
+            // 데이터 로딩 완료 시 오버레이 숨김
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+        }
     })();
 </script>
 </body></html>
