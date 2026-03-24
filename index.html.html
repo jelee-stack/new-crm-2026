@@ -520,17 +520,33 @@
 
         function parseDateLike(value) {
             if (!value) return null;
-            if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+            if (value instanceof Date && !Number.isNaN(value.getTime())) {
+                return value.getFullYear() >= 2000 ? value : null;
+            }
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                // numeric serial/date-like 값이 들어와도 2000년 이전은 무효 처리
+                const dNum = new Date(value);
+                if (!Number.isNaN(dNum.getTime()) && dNum.getFullYear() >= 2000) return dNum;
+            }
             const s = String(value).trim();
             const m = s.match(/^(\d{4})[.\-/년\s]+(\d{1,2})[.\-/월\s]+(\d{1,2})/);
-            if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            if (m) {
+                const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+                return d.getFullYear() >= 2000 ? d : null;
+            }
             const d = new Date(s);
-            return Number.isNaN(d.getTime()) ? null : d;
+            if (Number.isNaN(d.getTime())) return null;
+            return d.getFullYear() >= 2000 ? d : null;
         }
 
         function formatDateYmd(date) {
-            if (!date || Number.isNaN(date.getTime())) return '';
+            if (!date || Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return '-';
             return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatDateKorean(date) {
+            if (!date || Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return '-';
+            return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
         }
 
         // 핵심: 전화번호는 화면 출력 전에 반드시 이 함수를 통과
@@ -579,10 +595,13 @@
         function normalizeRecord(rec, idx) {
             const dbDate = parseDateLike(rec.dbEntryDate || rec['DB유입날짜'] || rec['DB 유입 날짜'] || rec.lastConsultLabel || rec.상담시간);
             const consultDate = parseDateLike(rec.lastConsultDate || rec.lastConsultLabel || rec.상담시간 || dbDate);
+            const formattedPhone = formatPhone(rec.phone || rec.연락처 || rec.전화번호 || '');
+            const rawName = normalizeText(rec.name || rec.이름 || '');
+            const displayName = rawName || formattedPhone || '-';
             return {
                 id: rec.id || `r-${idx}`,
-                name: rec.name || rec.이름 || `고객 ${idx + 1}`,
-                phone: formatPhone(rec.phone || rec.연락처 || rec.전화번호 || ''),
+                name: displayName,
+                phone: formattedPhone,
                 suspect: rec.suspect || rec.혐의 || '',
                 path: rec.path || rec.경로 || '',
                 contractStatus: rec.contractStatus || rec.계약여부 || '대기',
@@ -590,16 +609,77 @@
                 secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '',
                 firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
                 consultationContent: rec.consultationContent || rec.상담내용 || rec.문의사항 || '',
-                dbEntryDate: dbDate || new Date(2025, 0, 1),
-                lastConsultDate: consultDate || dbDate || new Date(2025, 0, 1),
-                lastConsultLabel: formatDateYmd(consultDate || dbDate || new Date(2025, 0, 1))
+                consultationHistory: Array.isArray(rec.consultationHistory) ? rec.consultationHistory : [],
+                dbEntryDate: dbDate,
+                lastConsultDate: consultDate || dbDate || null,
+                lastConsultLabel: formatDateYmd(consultDate || dbDate || null)
             };
+        }
+
+        function ensureListScrollable() {
+            const container = getProspectContainer();
+            if (!container) return;
+            const leftSection = container.closest('section.w-\\[400px\\]');
+            const topArea = leftSection?.querySelector('.p-6.pb-2');
+            const pagination = leftSection?.querySelector('.p-4.border-t.border-outline-variant\\/10.bg-white');
+            const sectionHeight = leftSection?.clientHeight || 0;
+            const topH = topArea?.offsetHeight || 0;
+            const bottomH = pagination?.offsetHeight || 0;
+            const available = sectionHeight - topH - bottomH;
+            if (available > 120) {
+                container.style.height = `${available}px`;
+                container.style.maxHeight = `${available}px`;
+            } else {
+                container.style.height = 'calc(100vh - 240px)';
+                container.style.maxHeight = 'calc(100vh - 240px)';
+            }
+            container.style.overflowY = 'auto';
+            container.style.overflowX = 'hidden';
+        }
+
+        function renderConsultationHistory(record) {
+            const historyHost = document.querySelector('div.relative.pl-8.space-y-6');
+            if (!historyHost) return;
+
+            const histories = Array.isArray(record?.consultationHistory) ? record.consultationHistory : [];
+            if (!histories.length) {
+                // 요청사항: 데이터 없으면 더미 텍스트 완전 제거
+                historyHost.innerHTML = '';
+                return;
+            }
+
+            historyHost.innerHTML = '';
+            const frag = document.createDocumentFragment();
+            histories.forEach((h, idx) => {
+                const d = parseDateLike(h.date || h.datetime || h.createdAt);
+                const dtLabel = d && d.getFullYear() >= 2000
+                    ? `${formatDateYmd(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+                    : '-';
+                const author = normalizeText(h.author || h.writer || h.counselor) || '담당자';
+                const content = normalizeText(h.content || h.note || h.memo) || '';
+
+                const wrap = document.createElement('div');
+                wrap.className = 'relative';
+                wrap.innerHTML = `
+                    <div class="absolute -left-7 top-1 w-4 h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-4 border-surface shadow-sm"></div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${dtLabel}</span>
+                            <span class="text-xs font-medium text-outline font-body">작성자: ${author}</span>
+                        </div>
+                        <p class="text-sm text-on-surface leading-relaxed font-body">${content}</p>
+                    </div>
+                `;
+                frag.appendChild(wrap);
+            });
+            historyHost.appendChild(frag);
         }
 
         function renderDetail(record) {
             if (!record) return;
             const detailTitle = document.querySelector('h2.text-4xl.font-black.font-headline');
-            if (detailTitle) detailTitle.textContent = `${record.name} 고객 상세`;
+            const titleName = normalizeText(record.name) || normalizeText(record.phone) || '-';
+            if (detailTitle) detailTitle.textContent = `${titleName} 고객 상세`;
 
             const phoneWrap = document.querySelector('span.flex.items-center.gap-3.text-lg.font-bold.text-on-surface');
             if (phoneWrap) {
@@ -615,11 +695,13 @@
             const detailRow = document.querySelector('table tbody tr');
             if (detailRow) {
                 const tds = detailRow.querySelectorAll('td');
-                if (tds[0]) tds[0].textContent = `${record.dbEntryDate.getFullYear()}년 ${String(record.dbEntryDate.getMonth() + 1).padStart(2, '0')}월 ${String(record.dbEntryDate.getDate()).padStart(2, '0')}일`;
+                if (tds[0]) tds[0].textContent = formatDateKorean(record.dbEntryDate);
                 if (tds[1]) tds[1].textContent = record.firstCounselor || '-';
                 if (tds[2]) tds[2].textContent = record.secondCounselor || '-';
                 if (tds[3]) tds[3].textContent = record.firstGuideAmount || '-';
             }
+
+            renderConsultationHistory(record);
         }
 
         function renderList(records) {
@@ -649,7 +731,7 @@
 
                 item.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-lg font-headline ${isActive ? '' : 'text-on-surface/80'}">${record.name || '이름 없음'}</span>
+                        <span class="font-bold text-lg font-headline ${isActive ? '' : 'text-on-surface/80'}">${record.name || record.phone || '-'}</span>
                         <div class="flex gap-1 items-center">
                             <span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold">CRM등록</span>
                             <span class="text-[11px] px-2 py-0.5 ${styles.tagBg} ${styles.tagText} rounded uppercase font-bold">${record.contractStatus || ''}</span>
@@ -673,17 +755,22 @@
             });
             container.appendChild(frag);
             updateProspectCountBadge(records.length);
+            ensureListScrollable();
         }
 
         function applyFilters() {
             const focusStatuses = new Set(['계약완료', '대기', '보류', '명도보류', '가선보류']);
             state.filteredRecords = state.allRecords.filter((r) => {
-                const yOk = state.selectedYear == null ? true : r.dbEntryDate.getFullYear() === state.selectedYear;
-                const mOk = state.selectedMonth == null ? true : (r.dbEntryDate.getMonth() + 1) === state.selectedMonth;
+                const yOk = state.selectedYear == null ? true : (r.dbEntryDate && r.dbEntryDate.getFullYear() === state.selectedYear);
+                const mOk = state.selectedMonth == null ? true : (r.dbEntryDate && (r.dbEntryDate.getMonth() + 1) === state.selectedMonth);
                 const crmOk = state.crmOnly ? true : true;
                 const focusOk = state.focusOnly ? focusStatuses.has(r.contractStatus) : true;
                 return yOk && mOk && crmOk && focusOk;
-            }).sort((a, b) => b.lastConsultDate - a.lastConsultDate);
+            }).sort((a, b) => {
+                const at = a.lastConsultDate ? a.lastConsultDate.getTime() : 0;
+                const bt = b.lastConsultDate ? b.lastConsultDate.getTime() : 0;
+                return bt - at;
+            });
             state.selectedIndex = 0;
         }
 
@@ -709,7 +796,11 @@
             const crmBtn = topButtons.find((b) => (b.textContent || '').includes('CRM등록 모아보기'));
             const focusBtn = topButtons.find((b) => (b.textContent || '').includes('집중관리'));
 
-            const years = Array.from(new Set(state.allRecords.map((r) => r.dbEntryDate.getFullYear()))).sort((a, b) => b - a);
+            const years = Array.from(new Set(
+                state.allRecords
+                    .filter((r) => r.dbEntryDate && r.dbEntryDate.getFullYear() >= 2000)
+                    .map((r) => r.dbEntryDate.getFullYear())
+            )).sort((a, b) => b - a);
 
             if (yearBtn && !yearBtn.dataset.bound) {
                 yearBtn.dataset.bound = '1';
@@ -777,6 +868,7 @@
             renderDetail(state.filteredRecords[state.selectedIndex]);
             bindListClickAfterRender(); // 반드시 렌더 후 바인딩
             bindTopFiltersOnce();
+            window.addEventListener('resize', ensureListScrollable);
         } catch (err) {
             console.error('[GAS Prospect Sync] failed:', err);
         }
