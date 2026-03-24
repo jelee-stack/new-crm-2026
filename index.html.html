@@ -1,320 +1,686 @@
-/**
- * GAS Web App (doGet):
- * action=prospects&today=YYYY-MM-DD
- */
+<!DOCTYPE html>
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>법무법인 에스 CRM - 가망 고객 관리</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff'); font-weight: bold; font-style: normal; }
+        body { font-family: 'Pretendard', sans-serif; }
+        .font-gmarket { font-family: 'Gmarket_Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b9c7df; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "outline": "#767683", "error": "#ba1a1a", "on-background": "#131b2e", "on-error-container": "#93000a",
+                "surface-container-low": "#f2f3ff", "on-surface-variant": "#464651", "surface-container-high": "#e2e7ff",
+                "on-primary-container": "#747cd3", "surface-container": "#eaedff", "on-primary": "#ffffff",
+                "outline-variant": "#c6c5d3", "on-primary-fixed-variant": "#353e91", "surface": "#faf8ff",
+                "surface-container-highest": "#dae2fd", "on-surface": "#131b2e", "primary-container": "#010766"
+              },
+              fontFamily: { "headline": ["Gmarket_Sans"], "body": ["Pretendard"] }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden">
 
-const SETTINGS = {
-  SPREADSHEET_ID: '',
-  HEADER_ROW: 5,
-  DATA_START_ROW: 6,
-  DATE_HEADER_NAME: 'DB유입날짜',
-  TODAY_STR: '2026-03-23',
-  MONTHS_BACK: 6,
-};
+<aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 h-screen w-64 border-r-0 bg-[#faf8ff] z-50">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h1 class="text-xl font-black text-[#000666] tracking-tighter font-headline">법무법인 에스</h1>
+</div>
+</div>
+<nav class="flex-1 space-y-2 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span> 대시보드
+        </a>
+<a id="nav-all-prospects" class="flex items-center gap-3 px-4 py-3 text-[#000666] font-bold border-r-4 border-[#000666] bg-[#eaedff] font-headline text-lg cursor-pointer transition-transform translate-x-1">
+<span class="material-symbols-outlined">person_search</span> 가망 고객
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
+<span class="material-symbols-outlined">gavel</span> 사건 관리
+        </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-4">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-xl">person_add</span> + 신규 고객 등록
+        </button>
+</div>
+</aside>
 
-const REQUIRED_HEADERS = [
-  'DB유입날짜',
-  '상담시간',
-  '이름',
-  '연락처',
-  '경로',
-  '혐의',
-  '계약여부',
-];
+<div class="ml-64 h-screen flex flex-col overflow-hidden">
+<header class="h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm shrink-0">
+<div class="flex items-center gap-6 flex-1">
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
+<input id="search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
+</div>
+<div class="flex items-center gap-2 text-sm font-bold font-body text-[#353e91]">
+<select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+<option value="all">전체 연도</option>
+<option value="2026">2026년</option>
+<option value="2025">2025년</option>
+</select>
+<select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+<option value="all">전체 월</option>
+<option value="1">1월</option> <option value="2">2월</option> <option value="3">3월</option>
+<option value="4">4월</option> <option value="5">5월</option> <option value="6">6월</option>
+<option value="7">7월</option> <option value="8">8월</option> <option value="9">9월</option>
+<option value="10">10월</option> <option value="11">11월</option> <option value="12">12월</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button id="filter-crm-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">CRM등록 모아보기</button>
+<button id="filter-focus-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">집중관리</button>
+</div>
+</header>
 
-const OUTPUT_HEADERS = {
-  name: '이름',
-  phone: '연락처',
-  path: '경로',
-  suspect: '혐의',
-  contractStatus: '계약여부',
-  lastConsultTime: '상담시간',
-  lastConsultFallbackTime: '방문예약날짜시간',
-  consultationContent: '상담내용',
-  consultationNotes: '상담내용', 
-  firstCounselor: '1차상담자',
-  secondCounselor: '2차 상담자',
-  inquiry: '문의사항',
-  category: '구분',
-  caseStage: '사건단계',
-  contactPurpose: '사건단계', 
-  contractReasonMemo: '계약여부에 대한사유 및 메모',
-  contractDateTime1: '방문예약날짜시간',
-  firstGuideAmount: '1차안내금액',
-  secondGuideAmount: '2차안내금액',
-  contractDeposit: '계약금',
-  commencementFee: '착수금',
-  additionalPayment: '추가보수',
-  memo: '비고',
-  visitReservationDateTime: '방문예약날짜시간',
-  call2DateTime: '2차콜날짜시간',
-  call3DateTime: '3차콜날짜시간',
-};
+<main class="flex-1 flex overflow-hidden relative">
+<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+    <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
+    <p class="mt-2 text-xs font-bold text-outline-variant">데이터베이스 연동으로 약 3~5초 정도 소요될 수 있습니다.</p>
+</div>
 
-function doGet(e) {
-  try {
-    const action = e?.parameter?.action || '';
-    if (action !== 'prospects') {
-      return jsonOut_({ error: 'INVALID_ACTION' }, 400);
-    }
-    return handleProspects_(e);
-  } catch (err) {
-    return jsonOut_({ error: String(err?.stack || err) }, 500);
-  }
-}
+<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
+<div class="p-6 pb-2 shrink-0">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+<div class="flex items-center gap-2">
+    <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
+    <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-2">
+        <span class="material-symbols-outlined text-lg">sort</span>
+        <span id="sort-text" class="text-[11px] font-bold font-body">최신순</span>
+    </button>
+</div>
+</div>
+</div>
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0">
+</div>
+<div class="p-4 border-t border-outline-variant/10 bg-white shrink-0 flex flex-col items-center">
+    <div id="pagination-container" class="flex items-center justify-center gap-1"></div>
+    <p id="pagination-info" class="text-[10px] text-center text-outline-variant mt-2 font-medium">Page 1 of 1</p>
+</div>
+</section>
 
-function doPost(e) {
-  return doGet(e);
-}
+<section class="flex-1 bg-surface flex flex-col h-full overflow-hidden">
+<div class="p-8 pb-4 shrink-0">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 id="detail-title" class="text-4xl font-black font-headline text-primary-container mb-1">고객 상세</h2>
+<span class="flex items-center gap-3 text-lg font-bold text-on-surface">
+    <span id="detail-phone-text">-</span>
+    <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">call</span>
+    </a>
+</span>
+</div>
+<div class="flex gap-2">
+<button id="btn-edit-prospect" class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
+<button id="btn-take-case" class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-outline-variant/10 shadow-sm">
+<table class="w-full text-left border-collapse font-body">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">DB 유입 날짜</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">1차 상담자</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">2차 상담자</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">안내 금액</th>
+</tr>
+</thead>
+<tbody class="bg-white">
+<tr class="border-b border-outline-variant/5">
+<td id="detail-date" class="px-6 py-4 font-semibold text-on-surface">-</td>
+<td id="detail-counselor1" class="px-6 py-4 text-on-surface-variant">-</td>
+<td id="detail-counselor2" class="px-6 py-4 text-on-surface-variant">-</td>
+<td id="detail-price" class="px-6 py-4 font-black text-primary-container">-</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-8 py-4 bg-surface-container-low/30">
+<h3 class="text-sm font-bold text-outline-variant uppercase tracking-widest mb-6">상담 히스토리</h3>
+<div id="history-container" class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20">
+</div>
+</div>
 
-function handleProspects_(e) {
-  const todayStr = e?.parameter?.today ? String(e.parameter.today) : SETTINGS.TODAY_STR;
+<div class="p-8 bg-white border-t border-outline-variant/10 shrink-0">
+    <div class="flex gap-4 items-start">
+        <div class="flex-1 space-y-4">
+            <textarea id="note-content" class="w-full p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
+            <div class="flex items-center gap-6">
+                <div class="flex-1">
+                    <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">다음 연락 예정일</label>
+                    <div class="relative">
+                        <input id="note-date" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-lg">calendar_month</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
+                    <select id="bottom-status-select" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
+                        <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
+                    </select>
+                </div>
+                <div class="flex items-end h-full self-end">
+                    <button id="btn-add-note" class="px-8 py-2.5 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline">노트 등록</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+</main>
+</div>
 
-  const todayMsUTC = ymdToUtcMidnightMs_(todayStr);
-  const startMsUTC = addMonthsUtcMidnight_(todayMsUTC, -SETTINGS.MONTHS_BACK);
+<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="new-customer-modal">
+<div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<h3 class="text-xl font-headline font-bold text-primary-container">신규 고객 등록</h3>
+<button class="material-symbols-outlined text-outline" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
+</div>
+<form id="new-customer-form" class="p-8 space-y-5">
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+    <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
+<textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
+</div>
+<div class="pt-4 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">등록 완료</button>
+</div>
+</form>
+</div>
+</div>
 
-  const ss = SETTINGS.SPREADSHEET_ID
-    ? SpreadsheetApp.openById(SETTINGS.SPREADSHEET_ID)
-    : SpreadsheetApp.getActiveSpreadsheet();
+<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="edit-customer-modal">
+<div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<h3 class="text-xl font-headline font-bold text-primary-container">고객 정보 수정</h3>
+<button class="material-symbols-outlined text-outline" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')">close</button>
+</div>
+<form id="edit-customer-form" class="p-8 space-y-5">
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="edit-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="edit-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="edit-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="edit-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="flex gap-4">
+    <div class="space-y-1 flex-1">
+    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+    <input id="edit-counselor1" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    </div>
+    <div class="space-y-1 flex-1">
+    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">2차 상담자</label>
+    <input id="edit-counselor2" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    </div>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">안내 금액</label>
+<input id="edit-price" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text" placeholder="예: 5,500,000"/>
+</div>
+<div class="space-y-1">
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="edit-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+    <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
+</select>
+</div>
+<div class="pt-4 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">수정 완료</button>
+</div>
+</form>
+</div>
+</div>
 
-  const sheets = ss.getSheets();
-  const records = [];
-
-  for (const sheet of sheets) {
-    const lastRow = sheet.getLastRow();
-    const lastCol = sheet.getLastColumn();
-
-    if (lastRow < SETTINGS.DATA_START_ROW) continue;
-    if (lastCol < 1) continue;
-
-    // [핵심 해결] 시트 이름(예: 2603, 2602)에서 연도와 월을 강제로 추출하여 1899년 필터링 오류 박멸
-    const sheetName = sheet.getName();
-    let sheetYear = null;
-    let sheetMonth = null;
-    const snMatch = sheetName.match(/^(\d{2})(\d{2})$/);
-    if (snMatch) {
-      sheetYear = 2000 + parseInt(snMatch[1], 10);
-      sheetMonth = parseInt(snMatch[2], 10);
-    }
-
-    const headerRow = sheet.getRange(SETTINGS.HEADER_ROW, 1, 1, lastCol).getValues()[0];
-
-    const idxByHeader = {};
-    for (let c = 0; c < headerRow.length; c++) {
-      const key = normalizeHeader_(headerRow[c]);
-      if (key) idxByHeader[key] = c;
-    }
-
-    let missingRequired = false;
-    for (const h of REQUIRED_HEADERS) {
-      const key = normalizeHeader_(h);
-      if (idxByHeader[key] === undefined) {
-        missingRequired = true;
-        break;
-      }
-    }
-    if (missingRequired) continue;
-
-    const dateIdx = idxByHeader[normalizeHeader_(SETTINGS.DATE_HEADER_NAME)];
-    const consultTimeIdx = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.lastConsultTime)];
-    const fallbackConsultTimeIdx = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.lastConsultFallbackTime)];
-
-    const numRows = lastRow - SETTINGS.DATA_START_ROW + 1;
-    const dataValues = sheet.getRange(SETTINGS.DATA_START_ROW, 1, numRows, lastCol).getValues();
-
-    for (const row of dataValues) {
-      const rawDate = row[dateIdx];
-      let parsedDate = parseDateCell_(rawDate);
-      if (!parsedDate) continue;
-
-      // [핵심 해결] 파싱된 날짜가 1899년 같은 쓰레기 데이터여도, 시트 이름이 2603이면 무조건 2026년 3월로 생명 연장!
-      if (parsedDate.getUTCFullYear() < 2000 && sheetYear && sheetMonth) {
-         parsedDate = new Date(Date.UTC(sheetYear, sheetMonth - 1, parsedDate.getUTCDate() || 1, 0, 0, 0));
-      }
-
-      const dateOnlyMsUTC = utcDateOnlyMidnightMs_(parsedDate);
-
-      // 이제 1899년 때문에 억울하게 6개월 필터에서 걸러지던 2, 3월 데이터가 모두 정상 통과됩니다!
-      if (dateOnlyMsUTC < startMsUTC || dateOnlyMsUTC > todayMsUTC) continue;
-
-      const name = cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.name)]]);
-      const phone = cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.phone)]]);
-      const path = cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.path)]]);
-      const suspect = cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.suspect)]]);
-      const contractStatus = cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.contractStatus)]]);
-
-      let lastConsultDate = parseDateCell_(row[consultTimeIdx]);
-      if (!lastConsultDate) {
-        if (fallbackConsultTimeIdx !== undefined) lastConsultDate = parseDateCell_(row[fallbackConsultTimeIdx]);
-      }
-      if (!lastConsultDate) lastConsultDate = parsedDate;
-
-      const lastConsultLabel = formatYMDUTC_(lastConsultDate);
-
-      const consultationContent = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.consultationContent)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.consultationContent)]])
-        : '';
-      const firstCounselor = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.firstCounselor)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.firstCounselor)]])
-        : '';
-      const secondCounselor = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.secondCounselor)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.secondCounselor)]])
-        : '';
-      const inquiry = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.inquiry)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.inquiry)]])
-        : '';
-      const category = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.category)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.category)]])
-        : '';
-      const caseStage = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.caseStage)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.caseStage)]])
-        : '';
-      const contractReasonMemo = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.contractReasonMemo)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.contractReasonMemo)]])
-        : '';
-      const firstGuideAmount = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.firstGuideAmount)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.firstGuideAmount)]])
-        : '';
-      const secondGuideAmount = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.secondGuideAmount)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.secondGuideAmount)]])
-        : '';
-      const contractDeposit = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.contractDeposit)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.contractDeposit)]])
-        : '';
-      const commencementFee = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.commencementFee)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.commencementFee)]])
-        : '';
-      const additionalPayment = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.additionalPayment)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.additionalPayment)]])
-        : '';
-      const memo = idxByHeader[normalizeHeader_(OUTPUT_HEADERS.memo)] !== undefined
-        ? cellToString_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.memo)]])
-        : '';
-
-      records.push({
-        name, phone, suspect, path, contractStatus, lastConsultLabel,
-        consultationContent, firstCounselor, secondCounselor, inquiry,
-        category, caseStage, contractReasonMemo, firstGuideAmount,
-        secondGuideAmount, contractDeposit, commencementFee, additionalPayment, memo,
-        visitReservationDateTime: idxByHeader[normalizeHeader_(OUTPUT_HEADERS.visitReservationDateTime)] !== undefined
-          ? safeDateTimeLabel_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.visitReservationDateTime)]]) : '',
-        call2DateTime: idxByHeader[normalizeHeader_(OUTPUT_HEADERS.call2DateTime)] !== undefined
-          ? safeDateTimeLabel_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.call2DateTime)]]) : '',
-        call3DateTime: idxByHeader[normalizeHeader_(OUTPUT_HEADERS.call3DateTime)] !== undefined
-          ? safeDateTimeLabel_(row[idxByHeader[normalizeHeader_(OUTPUT_HEADERS.call3DateTime)]]) : '',
+<script>
+    (async function initProspectsFromGAS() {
+        const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
         
-        // 프론트 필터링용 시트 고유 연월 데이터 넘겨주기
-        sheetYear: sheetYear,
-        sheetMonth: sheetMonth,
-        __date: dateOnlyMsUTC, 
-      });
-    }
-  }
+        const state = {
+            allRecords: [],
+            filteredRecords: [],
+            selectedIndex: 0,
+            selectedYear: 'all',
+            selectedMonth: 'all',
+            crmOnly: false,
+            focusOnly: false,
+            searchQuery: '', 
+            currentPage: 1, 
+            itemsPerPage: 30,
+            sortOrder: 'desc'
+        };
 
-  records.sort((a, b) => b.__date - a.__date);
+        function formatPhone(raw) {
+            const digits = String(raw || '').replace(/\D/g, '');
+            if (!digits) return '';
+            let v = digits;
+            if ((v.length === 9 || v.length === 10) && v.startsWith('10')) v = `0${v}`;
+            if (v.length === 11 && v.startsWith('010')) return `010-${v.slice(3, 7)}-${v.slice(7)}`;
+            return v;
+        }
 
-  const out = records.map(r => {
-    const { __date, ...rest } = r;
-    return rest;
-  });
+        // 백엔드 수술 연동: GAS에서 보내주는 sheetYear/sheetMonth를 완벽하게 흡수
+        function normalizeRecord(rec, idx) {
+            const phone = formatPhone(rec.phone || rec.연락처 || '');
+            const name = String(rec.name || rec.이름 || '').trim();
+            
+            let initialHistory = [];
+            if (rec.consultationContent) {
+                initialHistory.push({
+                    date: rec.lastConsultLabel !== '-' ? rec.lastConsultLabel : '날짜 미상',
+                    author: rec.firstCounselor || '시스템',
+                    content: rec.consultationContent
+                });
+            }
 
-  return jsonOut_({ records: out }, 200);
-}
+            // 시트 이름에서 파생된 연도/월(sheetYear, sheetMonth)을 최우선 기준으로 필터링 적용
+            return {
+                id: rec.id || `r-${idx}`,
+                name: name || phone || '-',
+                phone: phone,
+                contractStatus: rec.contractStatus || rec.계약여부 || '대기',
+                showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
+                firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
+                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
+                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
+                dbEntryDateRaw: rec.lastConsultLabel || '-', // 화면 노출용
+                yearToken: rec.sheetYear || 2026,  // 백엔드가 준 시트 연도 적용
+                monthToken: rec.sheetMonth || null, // 백엔드가 준 시트 월 적용
+                suspect: rec.suspect || rec.혐의 || '',
+                path: rec.path || rec['경로'] || '',
+                consultationHistory: initialHistory 
+            };
+        }
 
-function normalizeHeader_(v) {
-  if (v === null || v === undefined) return '';
-  return String(v).replace(/\s+/g, '').trim();
-}
+        function renderDetail(record) {
+            if (!record) return;
+            document.getElementById('detail-title').textContent = `${record.name} 고객 상세`;
+            
+            document.getElementById('detail-phone-text').textContent = record.phone || '-';
+            const telLink = document.getElementById('detail-phone-link');
+            const digits = (record.phone || '').replace(/\D/g, '');
+            telLink.href = digits ? `tel:${digits}` : '#';
 
-function parseDateCell_(raw) {
-  if (raw === null || raw === undefined || raw === '') return null;
-  if (Object.prototype.toString.call(raw) === '[object Date]' && !isNaN(raw.getTime())) {
-    return raw;
-  }
-  if (typeof raw === 'number' && isFinite(raw)) {
-    const excelEpochMs = Date.UTC(1899, 11, 30);
-    const ms = excelEpochMs + raw * 24 * 60 * 60 * 1000;
-    const d = new Date(ms);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  if (typeof raw === 'string') {
-    const t = raw.trim();
-    if (!t) return null;
-    const m1 = t.match(/^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
-    if (m1) {
-      const y = Number(m1[1]);
-      const mo = Number(m1[2]) - 1;
-      const day = Number(m1[3]);
-      const d = new Date(Date.UTC(y, mo, day, 0, 0, 0));
-      return isNaN(d.getTime()) ? null : d;
-    }
-    const m2 = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (m2) {
-      const y = Number(m2[1]);
-      const mo = Number(m2[2]) - 1;
-      const day = Number(m2[3]);
-      const d = new Date(Date.UTC(y, mo, day, 0, 0, 0));
-      return isNaN(d.getTime()) ? null : d;
-    }
-    const d = new Date(t);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  return null;
-}
+            document.getElementById('detail-date').textContent = record.dbEntryDateRaw; 
+            document.getElementById('detail-counselor1').textContent = record.firstCounselor;
+            document.getElementById('detail-counselor2').textContent = record.secondCounselor;
+            document.getElementById('detail-price').textContent = record.firstGuideAmount;
+            
+            const bottomStatusSelect = document.getElementById('bottom-status-select');
+            if (bottomStatusSelect) bottomStatusSelect.value = record.contractStatus;
+            
+            const historyHost = document.getElementById('history-container');
+            historyHost.innerHTML = ''; 
+            const histories = record.consultationHistory || [];
+            
+            if (histories.length > 0) {
+                const frag = document.createDocumentFragment();
+                histories.forEach((h, idx) => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'relative';
+                    wrap.innerHTML = `
+                        <div class="absolute -left-7 top-1 w-4 h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-4 border-surface shadow-sm"></div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${h.date}</span>
+                                <span class="text-xs font-medium text-outline font-body">작성자: ${h.author}</span>
+                            </div>
+                            <p class="text-sm text-on-surface leading-relaxed font-body whitespace-pre-wrap">${h.content}</p>
+                        </div>
+                    `;
+                    frag.appendChild(wrap);
+                });
+                historyHost.appendChild(frag);
+            } else {
+                historyHost.innerHTML = '<p class="text-sm text-outline-variant italic">기록된 상담 히스토리가 없습니다.</p>';
+            }
+        }
 
-function ymdToUtcMidnightMs_(ymdStr) {
-  const s = String(ymdStr || '').trim();
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) throw new Error('Invalid date (expected YYYY-MM-DD): ' + ymdStr);
-  const y = Number(m[1]);
-  const mo = Number(m[2]) - 1;
-  const d = Number(m[3]);
-  return Date.UTC(y, mo, d, 0, 0, 0);
-}
+        function renderPagination(totalItems) {
+            const totalPages = Math.max(1, Math.ceil(totalItems / state.itemsPerPage));
+            const container = document.getElementById('pagination-container');
+            const info = document.getElementById('pagination-info');
+            container.innerHTML = '';
+            info.textContent = `Page ${state.currentPage} of ${totalPages} (${totalItems}명)`;
 
-function addMonthsUtcMidnight_(dateMsUTC, deltaMonths) {
-  const d = new Date(dateMsUTC);
-  const y = d.getUTCFullYear();
-  const m = d.getUTCMonth();
-  const day = d.getUTCDate();
-  const target = new Date(Date.UTC(y, m + deltaMonths, day, 0, 0, 0));
-  return target.getTime();
-}
+            const createBtn = (text, disabled, isCurrent, onClick) => {
+                const btn = document.createElement('button');
+                btn.innerHTML = text;
+                btn.disabled = disabled;
+                if (isCurrent) {
+                    btn.className = 'w-8 h-8 rounded-lg bg-primary-container text-white text-xs font-bold font-body mx-0.5';
+                } else {
+                    btn.className = disabled 
+                        ? 'p-1.5 text-outline opacity-30 cursor-not-allowed mx-0.5' 
+                        : 'w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface-variant text-xs font-bold font-body transition-colors mx-0.5';
+                }
+                if (!disabled && onClick) btn.addEventListener('click', onClick);
+                return btn;
+            };
 
-function utcDateOnlyMidnightMs_(dateObj) {
-  return Date.UTC(
-    dateObj.getUTCFullYear(),
-    dateObj.getUTCMonth(),
-    dateObj.getUTCDate(),
-    0, 0, 0
-  );
-}
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_left</span>', state.currentPage === 1, false, () => {
+                state.currentPage--; renderList();
+            }));
 
-function formatYMDUTC_(dateObj) {
-  const y = dateObj.getUTCFullYear();
-  const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(dateObj.getUTCDate()).padStart(2, '0');
-  return `${y}.${m}.${d}`;
-}
+            let startPage = Math.max(1, state.currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
-function safeDateTimeLabel_(raw) {
-  const d = parseDateCell_(raw);
-  if (!d) return cellToString_(raw);
-  return formatYMDUTC_(d);
-}
+            for (let i = startPage; i <= endPage; i++) {
+                container.appendChild(createBtn(i, false, i === state.currentPage, () => {
+                    state.currentPage = i; renderList();
+                }));
+            }
 
-function cellToString_(v) {
-  if (v === null || v === undefined) return '';
-  if (v instanceof Date) return formatYMDUTC_(v);
-  if (typeof v === 'number') {
-    if (Number.isInteger(v)) return String(v);
-    return String(v);
-  }
-  return String(v);
-}
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_right</span>', state.currentPage === totalPages, false, () => {
+                state.currentPage++; renderList();
+            }));
+        }
 
-function jsonOut_(obj, statusCode) {
-  const out = ContentService.createTextOutput(JSON.stringify(obj));
-  out.setMimeType(ContentService.MimeType.JSON);
-  return out;
-}
+        function renderList() {
+            const container = document.getElementById('prospect-list-container');
+            document.getElementById('badge-total-count').textContent = `전체 ${state.filteredRecords.length}명`;
+            container.innerHTML = '';
+
+            const startIndex = (state.currentPage - 1) * state.itemsPerPage;
+            const endIndex = startIndex + state.itemsPerPage;
+            const pageRecords = state.filteredRecords.slice(startIndex, endIndex);
+
+            pageRecords.forEach((record, idxInPage) => {
+                const globalIdx = startIndex + idxInPage; 
+                const isActive = globalIdx === state.selectedIndex;
+                const item = document.createElement('div');
+                
+                item.className = isActive
+                    ? 'p-4 bg-[#eaedff] cursor-pointer border-l-4 border-[#000666] rounded-xl shadow-sm transition-all mb-3'
+                    : 'p-4 bg-white hover:bg-surface-container-low cursor-pointer border border-outline-variant/10 rounded-xl transition-all mb-3';
+                item.dataset.index = String(globalIdx);
+
+                const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-lg font-headline">${record.name}</span>
+                        <div>${crmBadgeHtml}<span class="text-[11px] px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span></div>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-on-surface-variant font-body">${record.phone}</span>
+                        <span class="text-xs font-bold font-body">${record.suspect}</span>
+                    </div>
+                    <div class="text-[10px] text-outline mt-2 font-medium flex justify-between items-center">
+                        <span>최근상담: ${record.dbEntryDateRaw}</span>
+                        <span>${record.path}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            renderPagination(state.filteredRecords.length);
+        }
+
+        function applyFilters() {
+            const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
+            
+            state.filteredRecords = state.allRecords.filter((r) => {
+                const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
+                const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
+                const crmOk = state.crmOnly ? r.showCrmBadge === true : true;
+                const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
+                
+                let searchOk = true;
+                if (state.searchQuery) {
+                    const q = state.searchQuery.toLowerCase();
+                    searchOk = r.name.toLowerCase().includes(q) || r.phone.includes(q);
+                }
+
+                return yOk && mOk && crmOk && focusOk && searchOk;
+            });
+
+            if (state.sortOrder === 'desc') {
+                state.filteredRecords.reverse(); 
+            }
+            
+            // 데이터 변경, 정렬 변경 시에만 리셋되도록 
+            // (노트 등록 시에는 필터를 다시 태우지 않도록 이벤트 핸들러에서 분리)
+        }
+
+        function bindEvents() {
+            document.getElementById('search-input').addEventListener('input', (e) => { 
+                state.searchQuery = e.target.value; 
+                state.currentPage = 1; state.selectedIndex = 0;
+                applyFilters(); renderList(); 
+                if (state.filteredRecords.length > 0) renderDetail(state.filteredRecords[0]); 
+            });
+
+            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            
+            document.getElementById('btn-sort-toggle').addEventListener('click', () => {
+                state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+                document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
+                state.currentPage = 1; state.selectedIndex = 0;
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
+            });
+
+            document.getElementById('nav-all-prospects').addEventListener('click', () => {
+                state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all'; state.searchQuery = '';
+                document.getElementById('filter-year-select').value = 'all';
+                document.getElementById('filter-month-select').value = 'all';
+                document.getElementById('search-input').value = '';
+                state.currentPage = 1; state.selectedIndex = 0;
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
+            });
+
+            document.getElementById('prospect-list-container').addEventListener('click', (e) => {
+                const card = e.target.closest('[data-index]');
+                if (!card) return;
+                state.selectedIndex = Number(card.dataset.index);
+                renderList(); 
+                renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
+            // 하단 진행상태 변경 (리셋 없이 화면만 갱신)
+            const bottomStatusSelect = document.getElementById('bottom-status-select');
+            if (bottomStatusSelect) {
+                bottomStatusSelect.addEventListener('change', (e) => {
+                    const record = state.filteredRecords[state.selectedIndex];
+                    if (!record) return;
+                    record.contractStatus = e.target.value;
+                    const originalRecord = state.allRecords.find(r => r.id === record.id);
+                    if (originalRecord) originalRecord.contractStatus = e.target.value;
+                    renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+                });
+            }
+
+            // 노트 연속 등록 버그 100% 수정 (리셋 없이 화면만 갱신)
+            document.getElementById('btn-add-note').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                const noteContent = document.getElementById('note-content').value.trim();
+                const noteDate = document.getElementById('note-date').value;
+                const statusSelect = document.getElementById('bottom-status-select').value;
+                
+                if (noteContent) {
+                    if (!record.consultationHistory) record.consultationHistory = [];
+                    record.consultationHistory.unshift({
+                        date: noteDate || new Date().toISOString().split('T')[0],
+                        author: '상담자', 
+                        content: noteContent
+                    });
+                }
+                
+                if (statusSelect) record.contractStatus = statusSelect;
+
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) {
+                    originalRecord.consultationHistory = record.consultationHistory;
+                    originalRecord.contractStatus = record.contractStatus;
+                }
+
+                document.getElementById('note-content').value = ''; 
+                // applyFilters()를 빼서 보고 있던 위치 고정!
+                renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
+            document.getElementById('new-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
+                state.allRecords.unshift(newRec); // 최신 데이터 위로
+                document.getElementById('new-customer-modal').classList.add('hidden');
+                document.getElementById('nav-all-prospects').click();
+            });
+
+            document.getElementById('btn-take-case').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                record.contractStatus = '계약완료';
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) originalRecord.contractStatus = '계약완료';
+
+                renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
+            document.getElementById('btn-edit-prospect').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                document.getElementById('edit-date').value = record.dbEntryDateRaw;
+                document.getElementById('edit-name').value = record.name !== '-' ? record.name : '';
+                document.getElementById('edit-phone').value = record.phone;
+                document.getElementById('edit-path').value = record.path;
+                document.getElementById('edit-suspect').value = record.suspect;
+                document.getElementById('edit-counselor1').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
+                document.getElementById('edit-counselor2').value = record.secondCounselor !== '-' ? record.secondCounselor : '';
+                document.getElementById('edit-price').value = record.firstGuideAmount !== '-' ? record.firstGuideAmount : '';
+                document.getElementById('edit-status').value = record.contractStatus;
+
+                document.getElementById('edit-customer-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('edit-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (!originalRecord) return;
+
+                originalRecord.dbEntryDateRaw = document.getElementById('edit-date').value;
+                originalRecord.name = document.getElementById('edit-name').value || '-';
+                originalRecord.phone = formatPhone(document.getElementById('edit-phone').value);
+                originalRecord.path = document.getElementById('edit-path').value;
+                originalRecord.suspect = document.getElementById('edit-suspect').value;
+                originalRecord.firstCounselor = document.getElementById('edit-counselor1').value || '-';
+                originalRecord.secondCounselor = document.getElementById('edit-counselor2').value || '-';
+                originalRecord.firstGuideAmount = document.getElementById('edit-price').value || '-';
+                originalRecord.contractStatus = document.getElementById('edit-status').value;
+
+                // 수정한 값 즉각 반영
+                record.dbEntryDateRaw = originalRecord.dbEntryDateRaw;
+                record.name = originalRecord.name;
+                record.phone = originalRecord.phone;
+                record.path = originalRecord.path;
+                record.suspect = originalRecord.suspect;
+                record.firstCounselor = originalRecord.firstCounselor;
+                record.secondCounselor = originalRecord.secondCounselor;
+                record.firstGuideAmount = originalRecord.firstGuideAmount;
+                record.contractStatus = originalRecord.contractStatus;
+
+                document.getElementById('edit-customer-modal').classList.add('hidden');
+                renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+            
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('today-date');
+            if(dateInput) dateInput.value = today;
+        }
+
+        try {
+            const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
+            const res = await fetch(url, { method: 'GET' });
+            const payload = await res.json();
+            
+            state.allRecords = (payload.records || []).map(normalizeRecord);
+            state.currentPage = 1; state.selectedIndex = 0;
+            applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); bindEvents();
+        } catch (err) { 
+            console.error(err); 
+        } finally {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+        }
+    })();
+</script>
+</body></html>
