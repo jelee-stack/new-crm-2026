@@ -680,7 +680,7 @@
                 `${GAS_WEBAPP_URL}${GAS_WEBAPP_URL.includes('?') ? '&' : '?'}action=prospects` +
                 `&today=${encodeURIComponent(TODAY_FOR_FILTER)}`;
 
-            const res = await fetch(url, { method: 'GET', credentials: 'include' });
+            const res = await fetch(url, { method: 'GET' });
             if (!res.ok) throw new Error(`GAS 응답 실패: ${res.status}`);
 
             const payload = await res.json();
