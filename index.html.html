@@ -519,34 +519,31 @@
         }
 
         function parseDateLike(value) {
-            if (!value) return null;
-            if (value instanceof Date && !Number.isNaN(value.getTime())) {
-                return value.getFullYear() >= 2000 ? value : null;
-            }
-            if (typeof value === 'number' && Number.isFinite(value)) {
-                // numeric serial/date-like 값이 들어와도 2000년 이전은 무효 처리
-                const dNum = new Date(value);
-                if (!Number.isNaN(dNum.getTime()) && dNum.getFullYear() >= 2000) return dNum;
-            }
-            const s = String(value).trim();
-            const m = s.match(/^(\d{4})[.\-/년\s]+(\d{1,2})[.\-/월\s]+(\d{1,2})/);
-            if (m) {
-                const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-                return d.getFullYear() >= 2000 ? d : null;
-            }
-            const d = new Date(s);
-            if (Number.isNaN(d.getTime())) return null;
-            return d.getFullYear() >= 2000 ? d : null;
+            // Date 변환을 하지 않고 원본 텍스트를 그대로 유지
+            if (value === null || value === undefined) return '';
+            return String(value).trim();
         }
 
-        function formatDateYmd(date) {
-            if (!date || Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return '-';
-            return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+        function formatDateYmd(dateText) {
+            return normalizeText(dateText) || '-';
         }
 
-        function formatDateKorean(date) {
-            if (!date || Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return '-';
-            return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
+        function formatDateKorean(dateText) {
+            return normalizeText(dateText) || '-';
+        }
+
+        function extractYearMonthFromRawDate(raw) {
+            const s = normalizeText(raw);
+            if (!s) return { year: null, month: null };
+            const nums = (s.match(/\d+/g) || []).map((n) => Number(n)).filter((n) => Number.isFinite(n));
+            const year = nums.find((n) => n >= 2000 && n <= 2100) || null;
+            let month = null;
+            if (year !== null) {
+                const yIndex = nums.indexOf(year);
+                if (yIndex >= 0 && nums[yIndex + 1] >= 1 && nums[yIndex + 1] <= 12) month = nums[yIndex + 1];
+            }
+            if (month === null) month = nums.find((n) => n >= 1 && n <= 12) || null;
+            return { year, month };
         }
 
         // 핵심: 전화번호는 화면 출력 전에 반드시 이 함수를 통과
@@ -593,11 +590,11 @@
         }
 
         function normalizeRecord(rec, idx) {
-            const dbDate = parseDateLike(rec.dbEntryDate || rec['DB유입날짜'] || rec['DB 유입 날짜'] || rec.lastConsultLabel || rec.상담시간);
-            const consultDate = parseDateLike(rec.lastConsultDate || rec.lastConsultLabel || rec.상담시간 || dbDate);
+            const rawDbDate = parseDateLike(rec.dbEntryDate || rec['DB유입날짜'] || rec['DB 유입 날짜'] || rec.lastConsultLabel || rec.상담시간);
             const formattedPhone = formatPhone(rec.phone || rec.연락처 || rec.전화번호 || '');
             const rawName = normalizeText(rec.name || rec.이름 || '');
             const displayName = rawName || formattedPhone || '-';
+            const ym = extractYearMonthFromRawDate(rawDbDate);
             return {
                 id: rec.id || `r-${idx}`,
                 name: displayName,
@@ -605,21 +602,31 @@
                 suspect: rec.suspect || rec.혐의 || '',
                 path: rec.path || rec.경로 || '',
                 contractStatus: rec.contractStatus || rec.계약여부 || '대기',
+                showCrmBadge: Boolean(
+                    rec.isNew === true ||
+                    rec.isNewlyCreated === true ||
+                    rec.crmRegistered === true ||
+                    rec['신규등록'] === true ||
+                    rec['CRM등록'] === true
+                ),
                 firstCounselor: rec.firstCounselor || rec['1차상담자'] || rec['1차 상담자'] || '',
                 secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '',
                 firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
                 consultationContent: rec.consultationContent || rec.상담내용 || rec.문의사항 || '',
                 consultationHistory: Array.isArray(rec.consultationHistory) ? rec.consultationHistory : [],
-                dbEntryDate: dbDate,
-                lastConsultDate: consultDate || dbDate || null,
-                lastConsultLabel: formatDateYmd(consultDate || dbDate || null)
+                dbEntryDateRaw: rawDbDate,
+                lastConsultLabel: formatDateYmd(rawDbDate),
+                yearToken: ym.year,
+                monthToken: ym.month
             };
         }
 
         function ensureListScrollable() {
             const container = getProspectContainer();
             if (!container) return;
+            container.classList.add('flex-1', 'overflow-y-auto');
             const leftSection = container.closest('section.w-\\[400px\\]');
+            if (leftSection) leftSection.classList.add('flex', 'flex-col', 'overflow-hidden');
             const topArea = leftSection?.querySelector('.p-6.pb-2');
             const pagination = leftSection?.querySelector('.p-4.border-t.border-outline-variant\\/10.bg-white');
             const sectionHeight = leftSection?.clientHeight || 0;
@@ -651,10 +658,7 @@
             historyHost.innerHTML = '';
             const frag = document.createDocumentFragment();
             histories.forEach((h, idx) => {
-                const d = parseDateLike(h.date || h.datetime || h.createdAt);
-                const dtLabel = d && d.getFullYear() >= 2000
-                    ? `${formatDateYmd(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-                    : '-';
+                const dtLabel = formatDateYmd(parseDateLike(h.date || h.datetime || h.createdAt));
                 const author = normalizeText(h.author || h.writer || h.counselor) || '담당자';
                 const content = normalizeText(h.content || h.note || h.memo) || '';
 
@@ -695,7 +699,7 @@
             const detailRow = document.querySelector('table tbody tr');
             if (detailRow) {
                 const tds = detailRow.querySelectorAll('td');
-                if (tds[0]) tds[0].textContent = formatDateKorean(record.dbEntryDate);
+                if (tds[0]) tds[0].textContent = formatDateKorean(record.dbEntryDateRaw);
                 if (tds[1]) tds[1].textContent = record.firstCounselor || '-';
                 if (tds[2]) tds[2].textContent = record.secondCounselor || '-';
                 if (tds[3]) tds[3].textContent = record.firstGuideAmount || '-';
@@ -725,15 +729,18 @@
 
                 const item = document.createElement('div');
                 item.className = isActive
-                    ? 'p-4 bg-surface-container-highest rounded-xl cursor-pointer border-l-4 border-primary-container transition-all'
-                    : 'p-4 hover:bg-surface-container-low rounded-xl cursor-pointer transition-all border-l-4 border-transparent';
+                    ? 'p-4 bg-surface-container-highest rounded-xl cursor-pointer border-l-4 border-primary-container transition-all border-b border-gray-200'
+                    : 'p-4 hover:bg-surface-container-low rounded-xl cursor-pointer transition-all border-l-4 border-transparent border-b border-gray-200';
                 item.dataset.index = String(idx);
+                const crmBadgeHtml = record.showCrmBadge
+                    ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold">CRM등록</span>'
+                    : '';
 
                 item.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-bold text-lg font-headline ${isActive ? '' : 'text-on-surface/80'}">${record.name || record.phone || '-'}</span>
                         <div class="flex gap-1 items-center">
-                            <span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold">CRM등록</span>
+                            ${crmBadgeHtml}
                             <span class="text-[11px] px-2 py-0.5 ${styles.tagBg} ${styles.tagText} rounded uppercase font-bold">${record.contractStatus || ''}</span>
                         </div>
                     </div>
@@ -761,15 +768,11 @@
         function applyFilters() {
             const focusStatuses = new Set(['계약완료', '대기', '보류', '명도보류', '가선보류']);
             state.filteredRecords = state.allRecords.filter((r) => {
-                const yOk = state.selectedYear == null ? true : (r.dbEntryDate && r.dbEntryDate.getFullYear() === state.selectedYear);
-                const mOk = state.selectedMonth == null ? true : (r.dbEntryDate && (r.dbEntryDate.getMonth() + 1) === state.selectedMonth);
-                const crmOk = state.crmOnly ? true : true;
+                const yOk = state.selectedYear == null ? true : r.yearToken === state.selectedYear;
+                const mOk = state.selectedMonth == null ? true : r.monthToken === state.selectedMonth;
+                const crmOk = state.crmOnly ? r.showCrmBadge === true : true;
                 const focusOk = state.focusOnly ? focusStatuses.has(r.contractStatus) : true;
                 return yOk && mOk && crmOk && focusOk;
-            }).sort((a, b) => {
-                const at = a.lastConsultDate ? a.lastConsultDate.getTime() : 0;
-                const bt = b.lastConsultDate ? b.lastConsultDate.getTime() : 0;
-                return bt - at;
             });
             state.selectedIndex = 0;
         }
@@ -798,8 +801,8 @@
 
             const years = Array.from(new Set(
                 state.allRecords
-                    .filter((r) => r.dbEntryDate && r.dbEntryDate.getFullYear() >= 2000)
-                    .map((r) => r.dbEntryDate.getFullYear())
+                    .filter((r) => Number.isFinite(r.yearToken))
+                    .map((r) => r.yearToken)
             )).sort((a, b) => b - a);
 
             if (yearBtn && !yearBtn.dataset.bound) {
