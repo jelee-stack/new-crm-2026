@@ -167,12 +167,12 @@
 <div class="p-8 bg-white border-t border-outline-variant/10 shrink-0">
     <div class="flex gap-4 items-start">
         <div class="flex-1 space-y-4">
-            <textarea class="w-full p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
+            <textarea id="note-content" class="w-full p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
             <div class="flex items-center gap-6">
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">다음 연락 예정일</label>
                     <div class="relative">
-                        <input class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
+                        <input id="note-date" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
                         <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-lg">calendar_month</span>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                     </select>
                 </div>
                 <div class="flex items-end h-full self-end">
-                    <button class="px-8 py-2.5 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline">노트 등록</button>
+                    <button id="btn-add-note" class="px-8 py-2.5 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline">노트 등록</button>
                 </div>
             </div>
         </div>
@@ -271,9 +271,19 @@
 <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
 <input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
+<div class="flex gap-4">
+    <div class="space-y-1 flex-1">
+    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+    <input id="edit-counselor1" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    </div>
+    <div class="space-y-1 flex-1">
+    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">2차 상담자</label>
+    <input id="edit-counselor2" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    </div>
+</div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
-<input id="edit-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">안내 금액</label>
+<input id="edit-price" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text" placeholder="예: 5,500,000"/>
 </div>
 <div class="space-y-1">
 <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
@@ -340,6 +350,17 @@
             const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
             const phone = formatPhone(rec.phone || rec.연락처 || '');
             const name = String(rec.name || rec.이름 || '').trim();
+            
+            // 백엔드에서 넘겨주는 상담내용(consultationContent)을 초기 타임라인 이력으로 변환
+            let initialHistory = [];
+            if (rec.consultationContent) {
+                initialHistory.push({
+                    date: dateInfo.cleanText !== '-' ? dateInfo.cleanText : '날짜 미상',
+                    author: rec.firstCounselor || '시스템',
+                    content: rec.consultationContent
+                });
+            }
+
             return {
                 id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
@@ -353,7 +374,8 @@
                 yearToken: dateInfo.year,
                 monthToken: dateInfo.month,
                 suspect: rec.suspect || rec.혐의 || '',
-                path: rec.path || rec['경로'] || ''
+                path: rec.path || rec['경로'] || '',
+                consultationHistory: initialHistory // 타임라인 기록용 로컬 저장소
             };
         }
 
@@ -374,7 +396,32 @@
             const bottomStatusSelect = document.getElementById('bottom-status-select');
             if (bottomStatusSelect) bottomStatusSelect.value = record.contractStatus;
             
-            document.getElementById('history-container').innerHTML = ''; 
+            // 날려먹었던 타임라인(히스토리) 그리기 기능 완벽 복원
+            const historyHost = document.getElementById('history-container');
+            historyHost.innerHTML = ''; 
+            const histories = record.consultationHistory || [];
+            
+            if (histories.length > 0) {
+                const frag = document.createDocumentFragment();
+                histories.forEach((h, idx) => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'relative';
+                    wrap.innerHTML = `
+                        <div class="absolute -left-7 top-1 w-4 h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-4 border-surface shadow-sm"></div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${h.date}</span>
+                                <span class="text-xs font-medium text-outline font-body">작성자: ${h.author}</span>
+                            </div>
+                            <p class="text-sm text-on-surface leading-relaxed font-body whitespace-pre-wrap">${h.content}</p>
+                        </div>
+                    `;
+                    frag.appendChild(wrap);
+                });
+                historyHost.appendChild(frag);
+            } else {
+                historyHost.innerHTML = '<p class="text-sm text-outline-variant italic">기록된 상담 히스토리가 없습니다.</p>';
+            }
         }
 
         function renderPagination(totalItems) {
@@ -526,7 +573,7 @@
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
-            // 하단 진행상태 변경 이벤트 연결
+            // 하단 진행상태 변경 즉각 연동
             const bottomStatusSelect = document.getElementById('bottom-status-select');
             if (bottomStatusSelect) {
                 bottomStatusSelect.addEventListener('change', (e) => {
@@ -539,6 +586,38 @@
                 });
             }
 
+            // 하단 '노트 등록' 기능 완벽 연결
+            document.getElementById('btn-add-note').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                const noteContent = document.getElementById('note-content').value.trim();
+                const noteDate = document.getElementById('note-date').value;
+                const statusSelect = document.getElementById('bottom-status-select').value;
+                
+                // 내용이 있을 때만 타임라인에 추가
+                if (noteContent) {
+                    if (!record.consultationHistory) record.consultationHistory = [];
+                    record.consultationHistory.unshift({
+                        date: noteDate || new Date().toISOString().split('T')[0],
+                        author: '상담자', // 로그인 연동 전 임시 명칭
+                        content: noteContent
+                    });
+                }
+                
+                // 상태 변경 적용
+                if (statusSelect) record.contractStatus = statusSelect;
+
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) {
+                    originalRecord.consultationHistory = record.consultationHistory;
+                    originalRecord.contractStatus = record.contractStatus;
+                }
+
+                document.getElementById('note-content').value = ''; // 작성 완료 후 칸 비우기
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
@@ -547,6 +626,7 @@
                 document.getElementById('nav-all-prospects').click();
             });
 
+            // 사건 수임 버튼 동작
             document.getElementById('btn-take-case').addEventListener('click', () => {
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
@@ -558,6 +638,7 @@
                 applyFilters(); renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
+            // 수정하기 버튼: 2차 상담자와 안내 금액 포함하여 기존 데이터 완벽 로드
             document.getElementById('btn-edit-prospect').addEventListener('click', () => {
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
@@ -567,12 +648,15 @@
                 document.getElementById('edit-phone').value = record.phone;
                 document.getElementById('edit-path').value = record.path;
                 document.getElementById('edit-suspect').value = record.suspect;
-                document.getElementById('edit-counselor').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
+                document.getElementById('edit-counselor1').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
+                document.getElementById('edit-counselor2').value = record.secondCounselor !== '-' ? record.secondCounselor : '';
+                document.getElementById('edit-price').value = record.firstGuideAmount !== '-' ? record.firstGuideAmount : '';
                 document.getElementById('edit-status').value = record.contractStatus;
 
                 document.getElementById('edit-customer-modal').classList.remove('hidden');
             });
 
+            // 수정하기 완료: 2차 상담자와 안내 금액 저장 로직 연결
             document.getElementById('edit-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const record = state.filteredRecords[state.selectedIndex];
@@ -591,7 +675,9 @@
                 originalRecord.phone = formatPhone(document.getElementById('edit-phone').value);
                 originalRecord.path = document.getElementById('edit-path').value;
                 originalRecord.suspect = document.getElementById('edit-suspect').value;
-                originalRecord.firstCounselor = document.getElementById('edit-counselor').value || '-';
+                originalRecord.firstCounselor = document.getElementById('edit-counselor1').value || '-';
+                originalRecord.secondCounselor = document.getElementById('edit-counselor2').value || '-';
+                originalRecord.firstGuideAmount = document.getElementById('edit-price').value || '-';
                 originalRecord.contractStatus = document.getElementById('edit-status').value;
 
                 document.getElementById('edit-customer-modal').classList.add('hidden');
