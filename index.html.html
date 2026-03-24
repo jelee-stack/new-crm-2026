@@ -69,7 +69,7 @@
 <div class="flex items-center gap-6 flex-1">
 <div class="relative w-full max-w-sm">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
-<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
+<input id="search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
 </div>
 <div class="flex items-center gap-2 text-sm font-bold font-body text-[#353e91]">
 <select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
@@ -119,14 +119,16 @@
 <div class="flex justify-between items-end mb-8">
 <div>
 <h2 id="detail-title" class="text-4xl font-black font-headline text-primary-container mb-1">고객 상세</h2>
-<div class="flex items-center gap-2 text-on-surface-variant font-body">
-<span class="material-symbols-outlined text-base">call</span>
-<span id="detail-phone" class="flex items-center gap-3 text-lg font-bold text-on-surface">-</span>
-</div>
+<span class="flex items-center gap-3 text-lg font-bold text-on-surface">
+    <span id="detail-phone-text">-</span>
+    <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">call</span>
+    </a>
+</span>
 </div>
 <div class="flex gap-2">
-<button onclick="alert('수정 기능은 현재 준비 중입니다.')" class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
-<button onclick="alert('사건 수임 기능은 현재 준비 중입니다.')" class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
+<button id="btn-edit-prospect" class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
+<button id="btn-take-case" class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
 </div>
 </div>
 <div class="overflow-hidden rounded-xl border border-outline-variant/10 shadow-sm">
@@ -135,6 +137,7 @@
 <tr>
 <th class="px-6 py-3 text-xs font-bold text-outline-variant">DB 유입 날짜</th>
 <th class="px-6 py-3 text-xs font-bold text-outline-variant">1차 상담자</th>
+<th class="px-6 py-3 text-xs font-bold text-outline-variant">2차 상담자</th>
 <th class="px-6 py-3 text-xs font-bold text-outline-variant">안내 금액</th>
 </tr>
 </thead>
@@ -142,6 +145,7 @@
 <tr class="border-b border-outline-variant/5">
 <td id="detail-date" class="px-6 py-4 font-semibold text-on-surface">-</td>
 <td id="detail-counselor1" class="px-6 py-4 text-on-surface-variant">-</td>
+<td id="detail-counselor2" class="px-6 py-4 text-on-surface-variant">-</td>
 <td id="detail-price" class="px-6 py-4 font-black text-primary-container">-</td>
 </tr>
 </tbody>
@@ -208,6 +212,51 @@
 </div>
 </div>
 
+<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="edit-customer-modal">
+<div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<h3 class="text-xl font-headline font-bold text-primary-container">고객 정보 수정</h3>
+<button class="material-symbols-outlined text-outline" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')">close</button>
+</div>
+<form id="edit-customer-form" class="p-8 space-y-5">
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="edit-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="edit-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="edit-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="edit-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<input id="edit-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="edit-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<option>계약완료</option><option>대기</option><option>보류</option><option>명도보류</option><option>가선보류</option><option>타변</option><option>부재중</option>
+</select>
+</div>
+<div class="pt-4 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">수정 완료</button>
+</div>
+</form>
+</div>
+</div>
+
 <script>
     (async function initProspectsFromGAS() {
         const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
@@ -220,6 +269,7 @@
             selectedMonth: 'all',
             crmOnly: false,
             focusOnly: false,
+            searchQuery: '', // 검색 기능 상태 추가
             currentPage: 1, 
             itemsPerPage: 30 
         };
@@ -233,29 +283,22 @@
             return v;
         }
 
-        // 1899/1900년 오류 완전 박멸 + 원본 텍스트 100% 보존 로직
         function processDateText(raw) {
             const s = String(raw || '').trim();
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
             let clean = s; 
-            let y = 2026; 
+            let y = new Date().getFullYear(); 
             let m = null;
 
-            // 구글 시트가 1899.12.30 이나 1899-12-30 형식으로 보내는 찌꺼기 데이터 정제
             const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
             if (badYearMatch) {
                 m = parseInt(badYearMatch[2], 10);
                 clean = `${m}월 ${parseInt(badYearMatch[3], 10)}일`;
             } else {
-                // 정상 데이터(03/07/토 등)는 clean 변수(원본)를 절대 훼손하지 않고 필터용 숫자만 추출
-                const mMatch1 = s.match(/(\d{1,2})[\/\.월]/);
-                if (mMatch1 && !s.match(/^\d{4}/)) { 
-                    m = parseInt(mMatch1[1], 10);
-                } else {
-                    const mMatch2 = s.match(/^\d{4}[\.\-년\s]+(\d{1,2})/); 
-                    if (mMatch2) m = parseInt(mMatch2[1], 10);
-                }
+                const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
+                if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
+                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); }
             }
             return { cleanText: clean, year: y, month: m };
         }
@@ -265,26 +308,35 @@
             const phone = formatPhone(rec.phone || rec.연락처 || '');
             const name = String(rec.name || rec.이름 || '').trim();
             return {
-                id: idx,
+                id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
                 phone: phone,
                 contractStatus: rec.contractStatus || rec.계약여부 || '대기',
                 showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
                 firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
+                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
+                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
                 dbEntryDateRaw: dateInfo.cleanText,
                 yearToken: dateInfo.year,
                 monthToken: dateInfo.month,
                 suspect: rec.suspect || rec.혐의 || '',
-                path: rec.path || rec['경로'] || '' // 누락되었던 경로 데이터 복구
+                path: rec.path || rec['경로'] || ''
             };
         }
 
         function renderDetail(record) {
             if (!record) return;
             document.getElementById('detail-title').textContent = `${record.name} 고객 상세`;
-            document.getElementById('detail-phone').textContent = record.phone || '-';
+            
+            document.getElementById('detail-phone-text').textContent = record.phone || '-';
+            const telLink = document.getElementById('detail-phone-link');
+            const digits = (record.phone || '').replace(/\D/g, '');
+            telLink.href = digits ? `tel:${digits}` : '#';
+
             document.getElementById('detail-date').textContent = record.dbEntryDateRaw; 
             document.getElementById('detail-counselor1').textContent = record.firstCounselor;
+            document.getElementById('detail-counselor2').textContent = record.secondCounselor;
+            document.getElementById('detail-price').textContent = record.firstGuideAmount;
             document.getElementById('history-container').innerHTML = ''; 
         }
 
@@ -350,7 +402,6 @@
 
                 const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
 
-                // 누락되었던 경로(path) 텍스트를 하단에 복구
                 item.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-bold text-lg font-headline">${record.name}</span>
@@ -379,7 +430,14 @@
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
                 const crmOk = state.crmOnly ? r.showCrmBadge === true : true;
                 const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
-                return yOk && mOk && crmOk && focusOk;
+                
+                let searchOk = true;
+                if (state.searchQuery) {
+                    const q = state.searchQuery.toLowerCase();
+                    searchOk = r.name.toLowerCase().includes(q) || r.phone.includes(q);
+                }
+
+                return yOk && mOk && crmOk && focusOk && searchOk;
             });
             
             state.currentPage = 1; 
@@ -394,15 +452,23 @@
         }
 
         function bindEvents() {
+            // 검색 이벤트 바인딩
+            document.getElementById('search-input').addEventListener('input', (e) => { 
+                state.searchQuery = e.target.value; 
+                applyFilters(); renderList(); 
+                if (state.filteredRecords.length > 0) renderDetail(state.filteredRecords[0]); 
+            });
+
             document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
             document.getElementById('nav-all-prospects').addEventListener('click', () => {
-                state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all';
+                state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all'; state.searchQuery = '';
                 document.getElementById('filter-year-select').value = 'all';
                 document.getElementById('filter-month-select').value = 'all';
+                document.getElementById('search-input').value = '';
                 applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
             });
 
@@ -420,6 +486,60 @@
                 state.allRecords.unshift(newRec);
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 document.getElementById('nav-all-prospects').click();
+            });
+
+            // 사건 수임 버튼 로직 완벽 연결
+            document.getElementById('btn-take-case').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                record.contractStatus = '계약완료';
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) originalRecord.contractStatus = '계약완료';
+
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
+            // 수정하기 모달 열기 데이터 매핑
+            document.getElementById('btn-edit-prospect').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                document.getElementById('edit-date').value = record.dbEntryDateRaw;
+                document.getElementById('edit-name').value = record.name !== '-' ? record.name : '';
+                document.getElementById('edit-phone').value = record.phone;
+                document.getElementById('edit-path').value = record.path;
+                document.getElementById('edit-suspect').value = record.suspect;
+                document.getElementById('edit-counselor').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
+                document.getElementById('edit-status').value = record.contractStatus;
+
+                document.getElementById('edit-customer-modal').classList.remove('hidden');
+            });
+
+            // 수정하기 완료 저장 로직 완벽 연결
+            document.getElementById('edit-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (!originalRecord) return;
+
+                const newDateText = document.getElementById('edit-date').value;
+                const parsedDate = processDateText(newDateText);
+
+                originalRecord.dbEntryDateRaw = newDateText;
+                originalRecord.yearToken = parsedDate.year;
+                originalRecord.monthToken = parsedDate.month;
+                originalRecord.name = document.getElementById('edit-name').value || '-';
+                originalRecord.phone = formatPhone(document.getElementById('edit-phone').value);
+                originalRecord.path = document.getElementById('edit-path').value;
+                originalRecord.suspect = document.getElementById('edit-suspect').value;
+                originalRecord.firstCounselor = document.getElementById('edit-counselor').value || '-';
+                originalRecord.contractStatus = document.getElementById('edit-status').value;
+
+                document.getElementById('edit-customer-modal').classList.add('hidden');
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
             });
             
             const today = new Date().toISOString().split('T')[0];
