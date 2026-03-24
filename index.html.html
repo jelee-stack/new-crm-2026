@@ -326,15 +326,36 @@
             return v;
         }
 
-        // 백엔드에서 넘겨주는 데이터는 정제되어 있으므로 그대로 사용
+        // [핵심 해결] 날짜를 100% 온전하게 받아와서 화면에 띄우는 함수로 복구!
+        function processDateText(raw) {
+            const s = String(raw || '').trim();
+            if (!s || s === '-') return { cleanText: '-', year: null, month: null };
+
+            let clean = s; 
+            let y = 2026; 
+            let m = null;
+
+            const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
+            if (badYearMatch) {
+                m = parseInt(badYearMatch[2], 10);
+                clean = `${m}.${parseInt(badYearMatch[3], 10)}`;
+            } else {
+                const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
+                if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
+                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); }
+            }
+            return { cleanText: clean, year: y, month: m };
+        }
+
         function normalizeRecord(rec, idx) {
-            const phone = formatPhone(rec.phone || '');
-            const name = String(rec.name || '').trim();
+            const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
+            const phone = formatPhone(rec.phone || rec.연락처 || '');
+            const name = String(rec.name || rec.이름 || '').trim();
             
             let initialHistory = [];
             if (rec.consultationContent) {
                 initialHistory.push({
-                    date: rec.dbEntryDateRaw !== '-' ? rec.dbEntryDateRaw : '날짜 미상',
+                    date: dateInfo.cleanText !== '-' ? dateInfo.cleanText : '날짜 미상',
                     author: rec.firstCounselor || '시스템',
                     content: rec.consultationContent
                 });
@@ -344,16 +365,16 @@
                 id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
                 phone: phone,
-                contractStatus: rec.contractStatus || '대기',
+                contractStatus: rec.contractStatus || rec.계약여부 || '대기',
                 showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
-                firstCounselor: rec.firstCounselor || '-',
-                secondCounselor: rec.secondCounselor || '-',
-                firstGuideAmount: rec.firstGuideAmount || '-',
-                dbEntryDateRaw: rec.dbEntryDateRaw || '-',
-                yearToken: rec.sheetYear || 2026,
-                monthToken: rec.sheetMonth || null,
-                suspect: rec.suspect || '',
-                path: rec.path || '',
+                firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
+                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
+                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
+                dbEntryDateRaw: dateInfo.cleanText, // [진짜 원인 해결] 누락됐던 연결고리 완벽 복구
+                yearToken: rec.sheetYear || dateInfo.year,
+                monthToken: rec.sheetMonth || dateInfo.month,
+                suspect: rec.suspect || rec.혐의 || '',
+                path: rec.path || rec['경로'] || '',
                 consultationHistory: initialHistory 
             };
         }
