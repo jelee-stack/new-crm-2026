@@ -500,26 +500,53 @@
     });
 </script>
 <script>
-    /**
-     * GAS Web App -> 가망 고객 리스트 렌더링
-     * - 프론트엔드에 API Key/Sheet ID 직접 노출 금지
-     * - 백엔드에서:
-     *   1) 모든 탭 순회
-     *   2) 1~4행 요약 데이터 무시
-     *   3) 5행 헤더, 6행부터 데이터
-     *   4) A열(헤더: DB유입날짜) 기준 과거 6개월 필터
-     *   5) 최신 날짜 내림차순 정렬 후 결과 반환
-     */
     (async function initProspectsFromGAS() {
-        /* =======================
-         *  !!! 여기에 입력 !!!
-         *  GAS Web App URL만 넣으세요.
-         *  (Google Sheets API 키/시트 ID는 프론트에 두지 않습니다.)
-         * ======================= */
         const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
-        /* ======================= */
+        const TODAY_FOR_FILTER = '2026-03-23';
 
-        const TODAY_FOR_FILTER = '2026-03-23'; // 백엔드와 동일 기준일(디버깅용으로도 같이 보냄)
+        const state = {
+            allRecords: [],
+            filteredRecords: [],
+            selectedIndex: 0,
+            selectedYear: null,
+            selectedMonth: null,
+            crmOnly: false,
+            focusOnly: false
+        };
+
+        function normalizeText(v) {
+            return (v ?? '').toString().replace(/\s+/g, '').trim();
+        }
+
+        function parseDateLike(value) {
+            if (!value) return null;
+            if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+            const s = String(value).trim();
+            const m = s.match(/^(\d{4})[.\-/년\s]+(\d{1,2})[.\-/월\s]+(\d{1,2})/);
+            if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            const d = new Date(s);
+            return Number.isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatDateYmd(date) {
+            if (!date || Number.isNaN(date.getTime())) return '';
+            return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        // 핵심: 전화번호는 화면 출력 전에 반드시 이 함수를 통과
+        function formatPhone(raw) {
+            const digits = String(raw ?? '').replace(/\D/g, '');
+            if (!digits) return '';
+
+            let v = digits;
+            if ((v.length === 9 || v.length === 10) && v.startsWith('10')) v = `0${v}`;
+
+            if (v.length === 11 && v.startsWith('010')) return `010-${v.slice(3, 7)}-${v.slice(7)}`;
+            if (v.length === 10 && v.startsWith('02')) return `02-${v.slice(2, 6)}-${v.slice(6)}`;
+            if (v.length === 10) return `${v.slice(0, 3)}-${v.slice(3, 6)}-${v.slice(6)}`;
+            if (v.length === 8) return `${v.slice(0, 4)}-${v.slice(4)}`;
+            return v;
+        }
 
         function getProspectContainer() {
             return document.querySelector('main > section.w-\\[400px\\] .overflow-y-auto.space-y-1.px-4.pb-2');
@@ -537,172 +564,219 @@
             }
         }
 
-        function normalizeText(v) {
-            return (v ?? '').toString().replace(/\s+/g, '').trim();
-        }
-
         function contractTagStyles(contractStatus) {
             const s = normalizeText(contractStatus);
-
-            // NOTE:
-            // 이미지(첨부 태그)와 동일한 디자인 토큰을 쓰기 위해,
-            // bg/text 는 tailwind 토큰 기반으로 1:1 매핑합니다.
-
-            // Positive: 계약완료, 전달
-            if (s.includes(normalizeText('계약완료')) || s === normalizeText('계약완료') || s.includes(normalizeText('전달'))) {
-                return { tagBg: 'bg-primary-container', tagText: 'text-on-primary', suspectText: 'text-primary-container' };
-            }
-
-            // Neutral: 대기, 단순, 타변
-            if (s.includes(normalizeText('대기'))) {
-                return { tagBg: 'bg-secondary-container', tagText: 'text-on-secondary-container', suspectText: 'text-secondary' };
-            }
-            if (s.includes(normalizeText('단순'))) {
-                // 기존 샘플 UI에서 단순은 alpha 배경 + primary-fixed 텍스트를 사용
-                return { tagBg: 'bg-primary-container/20', tagText: 'text-on-primary-fixed', suspectText: 'text-on-primary-fixed-variant' };
-            }
-            if (s.includes(normalizeText('타변'))) {
-                return { tagBg: 'bg-secondary-container', tagText: 'text-on-secondary-container', suspectText: 'text-secondary' };
-            }
-
-            // Warning/Urgent: 보류, 명도보류, 가선보류
-            if (s.includes(normalizeText('보류')) || s.includes(normalizeText('명도보류')) || s.includes(normalizeText('가선보류'))) {
-                return { tagBg: 'bg-tertiary-fixed', tagText: 'text-on-tertiary-fixed-variant', suspectText: 'text-on-tertiary-fixed-variant' };
-            }
-
-            // Negative/Closed: 불발, 노답, 노쇼, 중복, 부재중, 제외
-            if (
-                s.includes(normalizeText('불발')) ||
-                s.includes(normalizeText('노답')) ||
-                s.includes(normalizeText('노쇼')) ||
-                s.includes(normalizeText('중복')) ||
-                s.includes(normalizeText('부재중')) ||
-                s.includes(normalizeText('제외'))
-            ) {
+            if (s.includes('계약완료') || s.includes('전달')) return { tagBg: 'bg-primary-container', tagText: 'text-on-primary', suspectText: 'text-primary-container' };
+            if (s.includes('대기') || s.includes('타변')) return { tagBg: 'bg-secondary-container', tagText: 'text-on-secondary-container', suspectText: 'text-secondary' };
+            if (s.includes('단순')) return { tagBg: 'bg-primary-container/20', tagText: 'text-on-primary-fixed', suspectText: 'text-on-primary-fixed-variant' };
+            if (s.includes('보류') || s.includes('명도보류') || s.includes('가선보류')) return { tagBg: 'bg-tertiary-fixed', tagText: 'text-on-tertiary-fixed-variant', suspectText: 'text-on-tertiary-fixed-variant' };
+            if (s.includes('불발') || s.includes('노답') || s.includes('노쇼') || s.includes('중복') || s.includes('부재중') || s.includes('제외')) {
                 return { tagBg: 'bg-error-container', tagText: 'text-on-error-container', suspectText: 'text-error' };
             }
-
-            // default
             return { tagBg: 'bg-surface-container-low', tagText: 'text-on-surface-variant', suspectText: 'text-on-surface-variant' };
         }
 
-        function createProspectItem(record, isActive) {
-            const { name, phone, suspect, path, contractStatus, lastConsultLabel } = record;
-            const styles = contractTagStyles(contractStatus);
-
-            const wrapper = document.createElement('div');
-            wrapper.className = isActive
-                ? 'p-4 bg-surface-container-highest rounded-xl cursor-pointer border-l-4 border-primary-container transition-all'
-                : 'p-4 hover:bg-surface-container-low rounded-xl cursor-pointer transition-all border-l-4 border-transparent';
-
-            const topRow = document.createElement('div');
-            topRow.className = 'flex justify-between items-center mb-1';
-
-            const nameEl = document.createElement('span');
-            nameEl.className = isActive ? 'font-bold text-lg font-headline' : 'font-bold text-lg font-headline text-on-surface/80';
-            nameEl.textContent = name || '이름 없음';
-
-            const tagsWrap = document.createElement('div');
-            tagsWrap.className = 'flex gap-1 items-center';
-
-            // 샘플 UI에서 첫 배지는 항상 'CRM등록'처럼 보이므로 고정 출력
-            const firstTag = document.createElement('span');
-            firstTag.className = 'text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold';
-            firstTag.textContent = 'CRM등록';
-            tagsWrap.appendChild(firstTag);
-
-            if (contractStatus) {
-                const secondTag = document.createElement('span');
-                secondTag.className = `text-[11px] px-2 py-0.5 ${styles.tagBg} ${styles.tagText} rounded uppercase font-bold`;
-                secondTag.textContent = contractStatus;
-                tagsWrap.appendChild(secondTag);
-            }
-
-            topRow.appendChild(nameEl);
-            topRow.appendChild(tagsWrap);
-
-            const midRow = document.createElement('div');
-            midRow.className = 'flex justify-between items-center mb-1';
-
-            const leftMid = document.createElement('div');
-            leftMid.className = 'flex items-center gap-1.5';
-
-            const phoneP = document.createElement('p');
-            phoneP.className = 'text-sm text-on-surface-variant font-body';
-            phoneP.textContent = phone || '';
-
-            const callLink = document.createElement('a');
-            callLink.className = isActive
-                ? 'w-5 h-5 flex items-center justify-center rounded-full bg-white/50 hover:bg-white text-primary-container transition-colors'
-                : 'w-5 h-5 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-variant text-primary-container transition-colors';
-            callLink.href = phone ? `tel:${String(phone).replace(/\D/g, '')}` : '#';
-            if (!phone) callLink.addEventListener('click', e => e.preventDefault());
-
-            const callIcon = document.createElement('span');
-            callIcon.className = 'material-symbols-outlined text-[14px]';
-            callIcon.textContent = 'call';
-            callLink.appendChild(callIcon);
-
-            leftMid.appendChild(phoneP);
-            leftMid.appendChild(callLink);
-
-            const suspectP = document.createElement('p');
-            suspectP.className = `text-xs font-bold ${styles.suspectText} font-body`;
-            suspectP.textContent = suspect || '';
-
-            midRow.appendChild(leftMid);
-            midRow.appendChild(suspectP);
-
-            const bottomRow = document.createElement('div');
-            bottomRow.className = 'flex justify-between items-center';
-
-            const lastConsult = document.createElement('span');
-            lastConsult.className = 'text-[10px] text-outline font-medium font-body';
-            lastConsult.textContent = `최근상담: ${lastConsultLabel || ''}`;
-
-            const pathSpan = document.createElement('span');
-            pathSpan.className = 'text-[10px] text-outline font-medium font-body';
-            pathSpan.textContent = path || '';
-
-            bottomRow.appendChild(lastConsult);
-            bottomRow.appendChild(pathSpan);
-
-            wrapper.appendChild(topRow);
-            wrapper.appendChild(midRow);
-            wrapper.appendChild(bottomRow);
-            return wrapper;
+        function normalizeRecord(rec, idx) {
+            const dbDate = parseDateLike(rec.dbEntryDate || rec['DB유입날짜'] || rec['DB 유입 날짜'] || rec.lastConsultLabel || rec.상담시간);
+            const consultDate = parseDateLike(rec.lastConsultDate || rec.lastConsultLabel || rec.상담시간 || dbDate);
+            return {
+                id: rec.id || `r-${idx}`,
+                name: rec.name || rec.이름 || `고객 ${idx + 1}`,
+                phone: formatPhone(rec.phone || rec.연락처 || rec.전화번호 || ''),
+                suspect: rec.suspect || rec.혐의 || '',
+                path: rec.path || rec.경로 || '',
+                contractStatus: rec.contractStatus || rec.계약여부 || '대기',
+                firstCounselor: rec.firstCounselor || rec['1차상담자'] || rec['1차 상담자'] || '',
+                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '',
+                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
+                consultationContent: rec.consultationContent || rec.상담내용 || rec.문의사항 || '',
+                dbEntryDate: dbDate || new Date(2025, 0, 1),
+                lastConsultDate: consultDate || dbDate || new Date(2025, 0, 1),
+                lastConsultLabel: formatDateYmd(consultDate || dbDate || new Date(2025, 0, 1))
+            };
         }
 
-        try {
-            if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL.includes('PUT_YOUR')) return;
+        function renderDetail(record) {
+            if (!record) return;
+            const detailTitle = document.querySelector('h2.text-4xl.font-black.font-headline');
+            if (detailTitle) detailTitle.textContent = `${record.name} 고객 상세`;
 
-            const url =
-                `${GAS_WEBAPP_URL}${GAS_WEBAPP_URL.includes('?') ? '&' : '?'}action=prospects` +
-                `&today=${encodeURIComponent(TODAY_FOR_FILTER)}`;
+            const phoneWrap = document.querySelector('span.flex.items-center.gap-3.text-lg.font-bold.text-on-surface');
+            if (phoneWrap) {
+                const telDigits = (record.phone || '').replace(/\D/g, '');
+                phoneWrap.innerHTML = `
+                    ${record.phone}
+                    <a class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="${telDigits ? `tel:${telDigits}` : '#'}">
+                        <span class="material-symbols-outlined text-xl">call</span>
+                    </a>
+                `;
+            }
 
-            const res = await fetch(url, { method: 'GET' });
-            if (!res.ok) throw new Error(`GAS 응답 실패: ${res.status}`);
+            const detailRow = document.querySelector('table tbody tr');
+            if (detailRow) {
+                const tds = detailRow.querySelectorAll('td');
+                if (tds[0]) tds[0].textContent = `${record.dbEntryDate.getFullYear()}년 ${String(record.dbEntryDate.getMonth() + 1).padStart(2, '0')}월 ${String(record.dbEntryDate.getDate()).padStart(2, '0')}일`;
+                if (tds[1]) tds[1].textContent = record.firstCounselor || '-';
+                if (tds[2]) tds[2].textContent = record.secondCounselor || '-';
+                if (tds[3]) tds[3].textContent = record.firstGuideAmount || '-';
+            }
+        }
 
-            const payload = await res.json();
-            const records = payload?.records || [];
-
+        function renderList(records) {
             const container = getProspectContainer();
             if (!container) return;
-            container.innerHTML = '';
 
-            if (records.length === 0) {
+            container.innerHTML = '';
+            if (!records.length) {
                 const empty = document.createElement('div');
                 empty.className = 'p-6 text-sm text-outline-variant font-body';
                 empty.textContent = '조건에 맞는 가망 고객이 없습니다.';
                 container.appendChild(empty);
-                updateProspectCountBadge(0);
                 return;
             }
 
-            updateProspectCountBadge(records.length);
             const frag = document.createDocumentFragment();
-            records.forEach((rec, idx) => frag.appendChild(createProspectItem(rec, idx === 0)));
+            records.forEach((record, idx) => {
+                const styles = contractTagStyles(record.contractStatus);
+                const isActive = idx === state.selectedIndex;
+                const telDigits = (record.phone || '').replace(/\D/g, '');
+
+                const item = document.createElement('div');
+                item.className = isActive
+                    ? 'p-4 bg-surface-container-highest rounded-xl cursor-pointer border-l-4 border-primary-container transition-all'
+                    : 'p-4 hover:bg-surface-container-low rounded-xl cursor-pointer transition-all border-l-4 border-transparent';
+                item.dataset.index = String(idx);
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-lg font-headline ${isActive ? '' : 'text-on-surface/80'}">${record.name || '이름 없음'}</span>
+                        <div class="flex gap-1 items-center">
+                            <span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold">CRM등록</span>
+                            <span class="text-[11px] px-2 py-0.5 ${styles.tagBg} ${styles.tagText} rounded uppercase font-bold">${record.contractStatus || ''}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="flex items-center gap-1.5">
+                            <p class="text-sm text-on-surface-variant font-body">${record.phone || ''}</p>
+                            <a class="w-5 h-5 flex items-center justify-center rounded-full ${isActive ? 'bg-white/50 hover:bg-white' : 'bg-surface-container-high hover:bg-surface-variant'} text-primary-container transition-colors" href="${telDigits ? `tel:${telDigits}` : '#'}">
+                                <span class="material-symbols-outlined text-[14px]">call</span>
+                            </a>
+                        </div>
+                        <p class="text-xs font-bold ${styles.suspectText} font-body">${record.suspect || ''}</p>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-outline font-medium font-body">최근상담: ${record.lastConsultLabel || ''}</span>
+                        <span class="text-[10px] text-outline font-medium font-body">${record.path || ''}</span>
+                    </div>
+                `;
+                frag.appendChild(item);
+            });
             container.appendChild(frag);
+            updateProspectCountBadge(records.length);
+        }
+
+        function applyFilters() {
+            const focusStatuses = new Set(['계약완료', '대기', '보류', '명도보류', '가선보류']);
+            state.filteredRecords = state.allRecords.filter((r) => {
+                const yOk = state.selectedYear == null ? true : r.dbEntryDate.getFullYear() === state.selectedYear;
+                const mOk = state.selectedMonth == null ? true : (r.dbEntryDate.getMonth() + 1) === state.selectedMonth;
+                const crmOk = state.crmOnly ? true : true;
+                const focusOk = state.focusOnly ? focusStatuses.has(r.contractStatus) : true;
+                return yOk && mOk && crmOk && focusOk;
+            }).sort((a, b) => b.lastConsultDate - a.lastConsultDate);
+            state.selectedIndex = 0;
+        }
+
+        function bindListClickAfterRender() {
+            const container = getProspectContainer();
+            if (!container) return;
+            container.onclick = function (e) {
+                const card = e.target.closest('[data-index]');
+                if (!card) return;
+                const idx = Number(card.dataset.index);
+                if (Number.isNaN(idx)) return;
+                state.selectedIndex = idx;
+                renderList(state.filteredRecords);
+                renderDetail(state.filteredRecords[state.selectedIndex]);
+                bindListClickAfterRender();
+            };
+        }
+
+        function bindTopFiltersOnce() {
+            const topButtons = Array.from(document.querySelectorAll('header button'));
+            const yearBtn = topButtons.find((b) => (b.textContent || '').includes('년'));
+            const monthBtn = topButtons.find((b) => (b.textContent || '').includes('월'));
+            const crmBtn = topButtons.find((b) => (b.textContent || '').includes('CRM등록 모아보기'));
+            const focusBtn = topButtons.find((b) => (b.textContent || '').includes('집중관리'));
+
+            const years = Array.from(new Set(state.allRecords.map((r) => r.dbEntryDate.getFullYear()))).sort((a, b) => b - a);
+
+            if (yearBtn && !yearBtn.dataset.bound) {
+                yearBtn.dataset.bound = '1';
+                yearBtn.addEventListener('click', function () {
+                    if (!years.length) return;
+                    if (state.selectedYear == null) state.selectedYear = years[0];
+                    else {
+                        const idx = years.indexOf(state.selectedYear);
+                        state.selectedYear = idx >= 0 && idx < years.length - 1 ? years[idx + 1] : null;
+                    }
+                    applyFilters();
+                    renderList(state.filteredRecords);
+                    renderDetail(state.filteredRecords[state.selectedIndex]);
+                    bindListClickAfterRender();
+                });
+            }
+
+            if (monthBtn && !monthBtn.dataset.bound) {
+                monthBtn.dataset.bound = '1';
+                monthBtn.addEventListener('click', function () {
+                    if (state.selectedMonth == null) state.selectedMonth = 1;
+                    else state.selectedMonth = state.selectedMonth < 12 ? state.selectedMonth + 1 : null;
+                    applyFilters();
+                    renderList(state.filteredRecords);
+                    renderDetail(state.filteredRecords[state.selectedIndex]);
+                    bindListClickAfterRender();
+                });
+            }
+
+            if (crmBtn && !crmBtn.dataset.bound) {
+                crmBtn.dataset.bound = '1';
+                crmBtn.addEventListener('click', function () {
+                    state.crmOnly = !state.crmOnly;
+                    applyFilters();
+                    renderList(state.filteredRecords);
+                    renderDetail(state.filteredRecords[state.selectedIndex]);
+                    bindListClickAfterRender();
+                });
+            }
+
+            if (focusBtn && !focusBtn.dataset.bound) {
+                focusBtn.dataset.bound = '1';
+                focusBtn.addEventListener('click', function () {
+                    state.focusOnly = !state.focusOnly;
+                    applyFilters();
+                    renderList(state.filteredRecords);
+                    renderDetail(state.filteredRecords[state.selectedIndex]);
+                    bindListClickAfterRender();
+                });
+            }
+        }
+
+        try {
+            if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL.includes('PUT_YOUR')) return;
+            const url = `${GAS_WEBAPP_URL}${GAS_WEBAPP_URL.includes('?') ? '&' : '?'}action=prospects&today=${encodeURIComponent(TODAY_FOR_FILTER)}`;
+            const res = await fetch(url, { method: 'GET' });
+            if (!res.ok) throw new Error(`GAS 응답 실패: ${res.status}`);
+
+            const payload = await res.json();
+            const rawRecords = Array.isArray(payload?.records) ? payload.records : [];
+            state.allRecords = rawRecords.map(normalizeRecord);
+
+            applyFilters();
+            renderList(state.filteredRecords);
+            renderDetail(state.filteredRecords[state.selectedIndex]);
+            bindListClickAfterRender(); // 반드시 렌더 후 바인딩
+            bindTopFiltersOnce();
         } catch (err) {
             console.error('[GAS Prospect Sync] failed:', err);
         }
