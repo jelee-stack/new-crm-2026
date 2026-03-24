@@ -6,32 +6,13 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet"/>
 <style>
-        @font-face {
-            font-family: 'Gmarket_Sans';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-            font-weight: normal;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'Gmarket_Sans';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
-            font-weight: bold;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'Gmarket_Sans';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff') format('woff');
-            font-weight: 300;
-            font-style: normal;
-        }
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff'); font-weight: bold; font-style: normal; }
         body { font-family: 'Pretendard', sans-serif; }
         .font-gmarket { font-family: 'Gmarket_Sans', sans-serif; }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        /* 스크롤바 디자인 */
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        /* 깔끔한 커스텀 스크롤바 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
@@ -43,159 +24,83 @@
           theme: {
             extend: {
               colors: {
-                "outline": "#767683",
-                "error": "#ba1a1a",
-                "on-background": "#131b2e",
-                "on-error-container": "#93000a",
-                "on-tertiary": "#ffffff",
-                "on-primary-fixed": "#010766",
-                "tertiary": "#000000",
-                "surface-container-low": "#f2f3ff",
-                "secondary-fixed-dim": "#b9c7df",
-                "tertiary-fixed-dim": "#ffb4a8",
-                "on-tertiary-fixed-variant": "#7d2b21",
-                "primary": "#000000",
-                "on-surface-variant": "#464651",
-                "surface-container-high": "#e2e7ff",
-                "on-primary-container": "#747cd3",
-                "surface-variant": "#dae2fd",
-                "on-secondary-fixed": "#0d1c2e",
-                "surface-container": "#eaedff",
-                "on-primary": "#ffffff",
-                "on-tertiary-container": "#cb6657",
-                "primary-fixed-dim": "#bdc2ff",
-                "secondary-container": "#d5e3fc",
-                "outline-variant": "#c6c5d3",
-                "on-primary-fixed-variant": "#353e91",
-                "surface": "#faf8ff",
-                "surface-bright": "#faf8ff",
-                "inverse-surface": "#283044",
-                "secondary": "#515f74",
-                "surface-container-highest": "#dae2fd",
-                "on-secondary": "#ffffff",
-                "inverse-on-surface": "#eef0ff",
-                "tertiary-fixed": "#ffdad4",
-                "on-secondary-fixed-variant": "#3a485b",
-                "background": "#faf8ff",
-                "surface-container-lowest": "#ffffff",
-                "on-tertiary-fixed": "#410000",
-                "secondary-fixed": "#d5e3fc",
-                "inverse-primary": "#bdc2ff",
-                "on-secondary-container": "#57657a",
-                "primary-fixed": "#e0e0ff",
-                "on-surface": "#131b2e",
-                "primary-container": "#010766",
-                "surface-dim": "#d2d9f4",
-                "on-error": "#ffffff",
-                "surface-tint": "#4e56ab",
-                "tertiary-container": "#410000",
-                "error-container": "#ffdad6"
+                "outline": "#767683", "error": "#ba1a1a", "on-background": "#131b2e", "on-error-container": "#93000a",
+                "surface-container-low": "#f2f3ff", "on-surface-variant": "#464651", "surface-container-high": "#e2e7ff",
+                "on-primary-container": "#747cd3", "surface-container": "#eaedff", "on-primary": "#ffffff",
+                "outline-variant": "#c6c5d3", "on-primary-fixed-variant": "#353e91", "surface": "#faf8ff",
+                "surface-container-highest": "#dae2fd", "on-surface": "#131b2e", "primary-container": "#010766"
               },
-              fontFamily: {
-                "headline": ["Gmarket_Sans"],
-                "body": ["Pretendard"],
-                "label": ["Pretendard"]
-              },
-              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
-            },
-          },
+              fontFamily: { "headline": ["Gmarket_Sans"], "body": ["Pretendard"] }
+            }
+          }
         }
     </script>
 </head>
 <body class="bg-surface text-on-surface overflow-hidden">
-<aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 h-screen w-64 border-r-0 bg-[#faf8ff] dark:bg-[#000666] z-50">
+<aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 h-screen w-64 border-r-0 bg-[#faf8ff] z-50">
 <div class="flex items-center gap-3 mb-10 px-2">
 <div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg">
 <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">shield</span>
 </div>
 <div>
-<h1 class="text-xl font-black text-[#000666] dark:text-[#ffffff] tracking-tighter font-headline">법무법인 에스</h1>
-<p class="text-[10px] text-on-primary-fixed-variant tracking-widest uppercase font-bold opacity-60">Sovereign Ledger</p>
+<h1 class="text-xl font-black text-[#000666] tracking-tighter font-headline">법무법인 에스</h1>
 </div>
 </div>
 <nav class="flex-1 space-y-2 overflow-y-auto">
-<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] dark:text-[#e2e7ff] opacity-70 hover:opacity-100 font-headline font-bold text-lg tracking-tight hover:bg-[#f2f3ff] dark:hover:bg-[#353e91] transition-all duration-200" href="#">
-<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> 대시보드
+<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span> 대시보드
         </a>
-<a class="flex items-center gap-3 px-4 py-3 text-[#000666] dark:text-[#ffffff] font-bold border-r-4 border-[#000666] dark:border-[#eaedff] bg-[#eaedff] dark:bg-[#353e91] font-headline text-lg tracking-tight transition-transform translate-x-1" href="#">
-<span class="material-symbols-outlined" data-icon="person_search">person_search</span> 가망 고객
+<a id="nav-all-prospects" class="flex items-center gap-3 px-4 py-3 text-[#000666] font-bold border-r-4 border-[#000666] bg-[#eaedff] font-headline text-lg cursor-pointer transition-transform translate-x-1">
+<span class="material-symbols-outlined">person_search</span> 가망 고객
         </a>
-<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] dark:text-[#e2e7ff] opacity-70 hover:opacity-100 font-headline font-bold text-lg tracking-tight hover:bg-[#f2f3ff] dark:hover:bg-[#353e91] transition-all duration-200" href="#">
-<span class="material-symbols-outlined" data-icon="gavel">gavel</span> 사건 관리
-        </a>
-<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] dark:text-[#e2e7ff] opacity-70 hover:opacity-100 font-headline font-bold text-lg tracking-tight hover:bg-[#f2f3ff] dark:hover:bg-[#353e91] transition-all duration-200" href="#">
-<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span> 문서함
-        </a>
-<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] dark:text-[#e2e7ff] opacity-70 hover:opacity-100 font-headline font-bold text-lg tracking-tight hover:bg-[#f2f3ff] dark:hover:bg-[#353e91] transition-all duration-200" href="#">
-<span class="material-symbols-outlined" data-icon="settings">settings</span> 설정
+<a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
+<span class="material-symbols-outlined">gavel</span> 사건 관리
         </a>
 </nav>
 <div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-4">
-<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden')">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden')">
 <span class="material-symbols-outlined text-xl">person_add</span> + 신규 고객 등록
         </button>
-<div class="space-y-2">
-<button class="w-full flex items-center gap-3 px-4 py-2 text-[#353e91] dark:text-[#e2e7ff] opacity-70 hover:opacity-100 font-headline font-bold text-lg tracking-tight transition-all">
-<span class="material-symbols-outlined" data-icon="logout">logout</span> 로그아웃
-            </button>
-<div class="px-4 py-4 bg-surface-container rounded-xl flex items-center justify-between">
-<span class="text-sm font-bold text-primary-container">지원</span>
-<span class="material-symbols-outlined text-sm text-primary-container">info</span>
-</div>
-</div>
 </div>
 </aside>
 
 <div class="ml-64 min-h-screen flex flex-col">
-<header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 dark:bg-[#000666]/80 backdrop-blur-md shadow-sm dark:shadow-none">
+<header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm">
 <div class="flex items-center gap-6 flex-1">
 <div class="relative w-full max-w-sm">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
-<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm focus:ring-1 focus:ring-primary-container font-body" placeholder="고객명, 연락처 검색..." type="text"/>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
 </div>
-<div class="flex items-center gap-4 text-sm font-medium font-body text-[#353e91] dark:text-[#e2e7ff] flex-nowrap">
-<button id="filter-year-btn" class="flex items-center gap-1 hover:text-[#010766] transition-colors whitespace-nowrap">2026년 <span class="material-symbols-outlined text-xs">keyboard_arrow_down</span></button>
-<button id="filter-month-btn" class="flex items-center gap-1 hover:text-[#010766] transition-colors whitespace-nowrap">전체월 <span class="material-symbols-outlined text-xs">keyboard_arrow_down</span></button>
+<div class="flex items-center gap-2 text-sm font-bold font-body text-[#353e91]">
+<select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+<option value="all">전체 연도</option>
+<option value="2026">2026년</option>
+<option value="2025">2025년</option>
+</select>
+<select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+<option value="all">전체 월</option>
+<option value="1">1월</option> <option value="2">2월</option> <option value="3">3월</option>
+<option value="4">4월</option> <option value="5">5월</option> <option value="6">6월</option>
+<option value="7">7월</option> <option value="8">8월</option> <option value="9">9월</option>
+<option value="10">10월</option> <option value="11">11월</option> <option value="12">12월</option>
+</select>
 </div>
 </div>
 <div class="flex items-center gap-3">
-<button id="filter-crm-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all active:scale-95 border border-primary-container/10 font-headline">CRM등록 모아보기</button>
-<button id="filter-focus-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all active:scale-95 border border-primary-container/10 font-headline">집중관리</button>
-<div class="flex items-center gap-3 ml-2">
-<button class="material-symbols-outlined text-[#353e91] hover:text-[#010766] transition-colors p-2" data-icon="notifications">notifications</button>
-<button class="material-symbols-outlined text-[#353e91] hover:text-[#010766] transition-colors p-2" data-icon="help">help</button>
-</div>
-<div class="h-8 w-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant/30">
-<img alt="사용자 프로필" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAJDvPkUglVtqP4JSCItIGN_CoGTSgHLpSsTBNgilaQJw4Us3acZnFQNTL2CkMXqCDlunYOFYRyGh_yvt9zoPMFlJ-Gx6F4GG9OM1qxr8_JYbzhmxDNd5PIteVciuZ2_K3_EwB1_r0Abad3C3BHdbNxyO_HrUT2HpSLMcGHHZg47y6Q_n6OW4X_nvkR06k4k5gv1-U8nEzjT28YSYl5dpebLmCzFNepps8o34ciM6fhYVESTk3UOkVqiluss-nqsZHp6ytGJ2RQBc"/>
-</div>
+<button id="filter-crm-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">CRM등록 모아보기</button>
+<button id="filter-focus-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">집중관리</button>
 </div>
 </header>
 
 <main class="mt-16 flex flex-1 overflow-hidden h-[calc(100vh-64px)]">
-<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full">
+<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0">
 <div class="p-6 pb-2 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
-<div class="flex items-center gap-2">
 <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
-<div class="relative group">
-<button class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors">
-<span class="material-symbols-outlined text-lg">sort</span>
-<span class="text-[11px] font-bold font-body">최신상담순</span>
-</button>
 </div>
 </div>
-</div>
-</div>
-<div id="prospect-list-container" class="flex-1 overflow-y-auto space-y-0 pb-2">
-</div>
-<div class="p-4 border-t border-outline-variant/10 bg-white shrink-0">
-<div class="flex items-center justify-center gap-1">
-<button class="p-1.5 text-outline hover:text-primary-container disabled:opacity-30" disabled=""><span class="material-symbols-outlined text-sm">chevron_left</span></button>
-<button class="w-8 h-8 rounded-lg bg-primary-container text-white text-xs font-bold font-body">1</button>
-<span class="px-1 text-outline-variant text-xs">...</span>
-<button class="p-1.5 text-outline hover:text-primary-container"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
-</div>
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-4">
 </div>
 </section>
 
@@ -203,32 +108,26 @@
 <div class="p-8 pb-4 shrink-0">
 <div class="flex justify-between items-end mb-8">
 <div>
-<h2 id="detail-title" class="text-4xl font-black font-headline text-primary-container tracking-tighter mb-1">고객 상세</h2>
+<h2 id="detail-title" class="text-4xl font-black font-headline text-primary-container mb-1">고객 상세</h2>
 <div class="flex items-center gap-2 text-on-surface-variant font-body">
 <span class="material-symbols-outlined text-base">call</span>
 <span id="detail-phone" class="flex items-center gap-3 text-lg font-bold text-on-surface">-</span>
 </div>
 </div>
-<div class="flex gap-2">
-<button class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
-<button class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
-</div>
 </div>
 <div class="overflow-hidden rounded-xl border border-outline-variant/10 shadow-sm">
 <table class="w-full text-left border-collapse font-body">
-<thead>
-<tr class="bg-surface-container-low">
-<th class="px-6 py-3 text-xs font-bold text-outline-variant uppercase tracking-widest">DB 유입 날짜</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant uppercase tracking-widest">1차 상담자</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant uppercase tracking-widest">2차 상담자</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant uppercase tracking-widest">안내 금액</th>
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-3 text-xs font-bold text-outline-variant">DB 유입 날짜</th>
+<th class="px-6 py-3 text-xs font-bold text-outline-variant">1차 상담자</th>
+<th class="px-6 py-3 text-xs font-bold text-outline-variant">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
 <tr class="border-b border-outline-variant/5">
 <td id="detail-date" class="px-6 py-4 font-semibold text-on-surface">-</td>
 <td id="detail-counselor1" class="px-6 py-4 text-on-surface-variant">-</td>
-<td id="detail-counselor2" class="px-6 py-4 text-on-surface-variant">-</td>
 <td id="detail-price" class="px-6 py-4 font-black text-primary-container">-</td>
 </tr>
 </tbody>
@@ -236,33 +135,8 @@
 </div>
 </div>
 <div class="flex-1 overflow-y-auto px-8 py-4 bg-surface-container-low/30">
-<h3 class="text-sm font-bold text-outline-variant uppercase tracking-widest mb-6 px-4">상담 히스토리 (Consultation History)</h3>
+<h3 class="text-sm font-bold text-outline-variant uppercase tracking-widest mb-6">상담 히스토리</h3>
 <div id="history-container" class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20">
-</div>
-</div>
-<div class="p-8 bg-white border-t border-outline-variant/10 shrink-0">
-<div class="flex gap-4 items-start">
-<div class="flex-1 space-y-4">
-<textarea class="w-full p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
-<div class="flex items-center gap-6">
-<div class="flex-1">
-<label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">다음 연락 예정일</label>
-<div class="relative">
-<input class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
-<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-lg">calendar_month</span>
-</div>
-</div>
-<div class="flex-1">
-<label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
-<select class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
-<option>계약완료</option><option>대기</option><option>보류</option><option>단순</option>
-</select>
-</div>
-<div class="flex items-end h-full self-end">
-<button class="px-8 py-2.5 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline">노트 등록</button>
-</div>
-</div>
-</div>
 </div>
 </div>
 </section>
@@ -270,386 +144,197 @@
 </div>
 
 <div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="new-customer-modal">
-<div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
-<h3 class="text-xl font-headline font-bold text-primary-container flex items-center gap-2">
-<span class="material-symbols-outlined">person_add</span> 신규 고객 등록
-            </h3>
-<button class="material-symbols-outlined text-outline hover:text-primary transition-colors" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
+<div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low">
+<h3 class="text-xl font-headline font-bold text-primary-container">신규 고객 등록</h3>
+<button class="material-symbols-outlined text-outline" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
 </div>
-<form id="new-customer-form" class="p-8 space-y-5">
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
-<input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">이름</label>
-<input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
-<input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">경로</label>
-<input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">혐의</label>
-<input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
-<select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
-<option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
-</select>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
-<select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
-<option>계약완료</option><option>대기</option><option>보류</option><option>타변</option><option>부재중</option>
-</select>
-</div>
-<div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
-<textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
-</div>
-<div class="pt-4 flex justify-end gap-3">
-<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
-<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">등록 완료</button>
-</div>
+<form id="new-customer-form" class="p-6 space-y-4">
+<input id="new-name" class="w-full px-4 py-2 bg-surface-container-low rounded-xl" placeholder="고객명" type="text"/>
+<input id="new-phone" class="w-full px-4 py-2 bg-surface-container-low rounded-xl" placeholder="전화번호" type="tel" required/>
+<button class="w-full py-2.5 bg-primary-container text-white font-bold rounded-xl" type="submit">등록</button>
 </form>
 </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date().toISOString().split('T')[0];
-        const dateInput = document.getElementById('today-date');
-        if(dateInput) dateInput.value = today;
-    });
-
     (async function initProspectsFromGAS() {
         const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
-        const TODAY_FOR_FILTER = '2026-03-24';
-
+        
         const state = {
             allRecords: [],
             filteredRecords: [],
             selectedIndex: 0,
-            selectedYear: 2026,
-            selectedMonth: null,
+            selectedYear: 'all',
+            selectedMonth: 'all',
             crmOnly: false,
             focusOnly: false
         };
 
-        function normalizeText(v) {
-            return (v ?? '').toString().replace(/\s+/g, '').trim();
-        }
-
-        // 텍스트에서 월 데이터만 영리하게 추출
-        function extractMonthFromRaw(raw) {
-            const s = String(raw || '').trim();
-            if(!s || s === '-') return null;
-            // '03/07' 같은 형태에서 3 추출
-            const slashMatch = s.match(/^(\d+)\//);
-            if(slashMatch) return parseInt(slashMatch[1], 10);
-            
-            // '3월' 같은 형태에서 3 추출
-            const koMatch = s.match(/(\d+)월/);
-            if(koMatch) return parseInt(koMatch[1], 10);
-            return null;
-        }
-
         function formatPhone(raw) {
-            const digits = String(raw ?? '').replace(/\D/g, '');
+            const digits = String(raw || '').replace(/\D/g, '');
             if (!digits) return '';
             let v = digits;
             if ((v.length === 9 || v.length === 10) && v.startsWith('10')) v = `0${v}`;
             if (v.length === 11 && v.startsWith('010')) return `010-${v.slice(3, 7)}-${v.slice(7)}`;
-            if (v.length === 10 && v.startsWith('02')) return `02-${v.slice(2, 6)}-${v.slice(6)}`;
-            if (v.length === 10) return `${v.slice(0, 3)}-${v.slice(3, 6)}-${v.slice(6)}`;
-            if (v.length === 8) return `${v.slice(0, 4)}-${v.slice(4)}`;
             return v;
         }
 
-        function contractTagStyles(contractStatus) {
-            const s = normalizeText(contractStatus);
-            if (s.includes('계약완료') || s.includes('전달')) return { tagBg: 'bg-primary-container', tagText: 'text-on-primary', suspectText: 'text-primary-container' };
-            if (s.includes('대기') || s.includes('타변')) return { tagBg: 'bg-secondary-container', tagText: 'text-on-secondary-container', suspectText: 'text-secondary' };
-            if (s.includes('단순')) return { tagBg: 'bg-primary-container/20', tagText: 'text-on-primary-fixed', suspectText: 'text-on-primary-fixed-variant' };
-            if (s.includes('보류') || s.includes('명도보류') || s.includes('가선보류')) return { tagBg: 'bg-tertiary-fixed', tagText: 'text-on-tertiary-fixed-variant', suspectText: 'text-on-tertiary-fixed-variant' };
-            if (s.includes('불발') || s.includes('노답') || s.includes('노쇼') || s.includes('부재중') || s.includes('제외')) {
-                return { tagBg: 'bg-error-container', tagText: 'text-on-error-container', suspectText: 'text-error' };
+        // [핵심] 지은 님 아이디어: 투트랙 지능형 날짜 추출 엔진
+        function processDateText(raw) {
+            const s = String(raw || '').trim();
+            
+            // 1. 엑셀의 잘못된 과거 데이터 찌꺼기는 여기서 원천 차단 (-)
+            if (s.includes('1899') || s.includes('1900') || s.includes('1890')) {
+                return { cleanText: '-', year: null, month: null };
             }
-            return { tagBg: 'bg-surface-container-low', tagText: 'text-on-surface-variant', suspectText: 'text-on-surface-variant' };
+            if (!s || s === '-') return { cleanText: '-', year: null, month: null };
+
+            let y = null;
+            let m = null;
+
+            // 2. YYYY.MM.DD 또는 YYYY-MM-DD 형태 분석
+            const ymdMatch = s.match(/(\d{4})[\.\-년\s]+(\d{1,2})/);
+            if (ymdMatch) {
+                y = parseInt(ymdMatch[1], 10);
+                m = parseInt(ymdMatch[2], 10);
+            } 
+            // 3. MM/DD 형태 (예: 03/07/토)에서 월만 쏙 뽑아내기
+            else if (s.match(/^(\d{1,2})\//)) {
+                m = parseInt(s.match(/^(\d{1,2})\//)[1], 10);
+                y = new Date().getFullYear();
+            }
+            // 4. X월 형태에서 월만 뽑아내기
+            else if (s.match(/(\d{1,2})월/)) {
+                m = parseInt(s.match(/(\d{1,2})월/)[1], 10);
+                y = new Date().getFullYear();
+            }
+
+            // 화면 노출용(cleanText)은 원본 보존, 필터 계산용은 숫자 반환
+            return { cleanText: s, year: y, month: m };
         }
 
         function normalizeRecord(rec, idx) {
-            // DB 원본 날짜 텍스트 그대로 가져오기
-            const rawDbDate = String(rec.dbEntryDate || rec['DB유입날짜'] || rec['DB 유입 날짜'] || rec.lastConsultLabel || rec.상담시간 || '').trim() || '-';
-            const formattedPhone = formatPhone(rec.phone || rec.연락처 || rec.전화번호 || '');
-            const rawName = String(rec.name || rec.이름 || '').trim();
-            const displayName = rawName || formattedPhone || '-';
+            const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
+            const phone = formatPhone(rec.phone || rec.연락처 || '');
+            const name = String(rec.name || rec.이름 || '').trim();
             
             return {
-                id: rec.id || `r-${idx}`,
-                name: displayName,
-                phone: formattedPhone,
-                suspect: rec.suspect || rec.혐의 || '',
-                path: rec.path || rec.경로 || '',
+                id: idx,
+                name: name || phone || '-',
+                phone: phone,
                 contractStatus: rec.contractStatus || rec.계약여부 || '대기',
-                showCrmBadge: Boolean(rec.isNew === true || rec['신규등록'] === true || rec['CRM등록'] === true),
-                firstCounselor: rec.firstCounselor || rec['1차상담자'] || rec['1차 상담자'] || '-',
-                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
-                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
-                consultationContent: rec.consultationContent || rec.상담내용 || rec.문의사항 || '',
-                consultationHistory: Array.isArray(rec.consultationHistory) ? rec.consultationHistory : [],
-                dbEntryDateRaw: rawDbDate, // 원본 그대로 저장
-                monthToken: extractMonthFromRaw(rawDbDate) // 필터용 월 숫자 추출
+                showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
+                firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
+                dbEntryDateRaw: dateInfo.cleanText,
+                yearToken: dateInfo.year,
+                monthToken: dateInfo.month,
+                suspect: rec.suspect || rec.혐의 || ''
             };
         }
 
         function renderDetail(record) {
             if (!record) return;
-            const detailTitle = document.getElementById('detail-title');
-            if (detailTitle) detailTitle.textContent = `${record.name} 고객 상세`;
-
-            const phoneWrap = document.getElementById('detail-phone');
-            if (phoneWrap) {
-                const telDigits = (record.phone || '').replace(/\D/g, '');
-                phoneWrap.innerHTML = `
-                    ${record.phone || '-'}
-                    <a class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="${telDigits ? `tel:${telDigits}` : '#'}">
-                        <span class="material-symbols-outlined text-xl">call</span>
-                    </a>
-                `;
-            }
-
-            document.getElementById('detail-date').textContent = record.dbEntryDateRaw; // 1900년 버그 해결, 원본 출력
+            document.getElementById('detail-title').textContent = `${record.name} 고객 상세`;
+            document.getElementById('detail-phone').textContent = record.phone || '-';
+            document.getElementById('detail-date').textContent = record.dbEntryDateRaw;
             document.getElementById('detail-counselor1').textContent = record.firstCounselor;
-            document.getElementById('detail-counselor2').textContent = record.secondCounselor;
-            document.getElementById('detail-price').textContent = record.firstGuideAmount;
-
-            // 히스토리 렌더링
-            const historyHost = document.getElementById('history-container');
-            if (!historyHost) return;
-            historyHost.innerHTML = '';
-            const histories = record.consultationHistory || [];
-            if (!histories.length) return; // 데이터 없으면 더미 싹 지우기
-
-            const frag = document.createDocumentFragment();
-            histories.forEach((h, idx) => {
-                const dtLabel = String(h.date || h.datetime || h.createdAt || '').trim();
-                const author = normalizeText(h.author || h.writer || h.counselor) || '담당자';
-                const content = String(h.content || h.note || h.memo || '').trim();
-
-                const wrap = document.createElement('div');
-                wrap.className = 'relative';
-                wrap.innerHTML = `
-                    <div class="absolute -left-7 top-1 w-4 h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-4 border-surface shadow-sm"></div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${dtLabel}</span>
-                            <span class="text-xs font-medium text-outline font-body">작성자: ${author}</span>
-                        </div>
-                        <p class="text-sm text-on-surface leading-relaxed font-body">${content}</p>
-                    </div>
-                `;
-                frag.appendChild(wrap);
-            });
-            historyHost.appendChild(frag);
+            document.getElementById('history-container').innerHTML = ''; 
         }
 
         function renderList(records) {
             const container = document.getElementById('prospect-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-            
             document.getElementById('badge-total-count').textContent = `전체 ${records.length}명`;
+            container.innerHTML = '';
 
-            if (!records.length) {
-                container.innerHTML = '<div class="p-6 text-sm text-outline-variant font-body">조건에 맞는 데이터가 없습니다.</div>';
-                return;
-            }
-
-            const frag = document.createDocumentFragment();
             records.forEach((record, idx) => {
-                const styles = contractTagStyles(record.contractStatus);
                 const isActive = idx === state.selectedIndex;
-                const telDigits = (record.phone || '').replace(/\D/g, '');
-
                 const item = document.createElement('div');
-                // 클릭 효과 및 하단 구분선(border-b) 추가
-                item.className = isActive
-                    ? 'p-4 bg-surface-container-highest cursor-pointer border-l-4 border-primary-container border-b border-outline-variant/20 transition-all'
-                    : 'p-4 hover:bg-surface-container-low cursor-pointer border-l-4 border-transparent border-b border-outline-variant/20 transition-all';
-                item.dataset.index = String(idx);
                 
-                const crmBadgeHtml = record.showCrmBadge
-                    ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>'
-                    : '';
+                // 디자인 복구: 곡선이 들어간 둥근 카드(rounded-2xl)와 구분선 여백(mb-3) 완벽 적용
+                item.className = isActive
+                    ? 'p-4 bg-surface-container-highest cursor-pointer border-2 border-primary-container rounded-2xl shadow-md transition-all mb-3'
+                    : 'p-4 hover:bg-surface-container-low cursor-pointer border-b-2 border-outline-variant/10 rounded-2xl transition-all mb-3';
+                item.dataset.index = String(idx);
+
+                const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
 
                 item.innerHTML = `
-                    <div class="flex justify-between items-center mb-1 px-2">
-                        <span class="font-bold text-lg font-headline ${isActive ? '' : 'text-on-surface/80'}">${record.name}</span>
-                        <div class="flex items-center">
-                            ${crmBadgeHtml}
-                            <span class="text-[11px] px-2 py-0.5 ${styles.tagBg} ${styles.tagText} rounded uppercase font-bold">${record.contractStatus || ''}</span>
-                        </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-lg font-headline">${record.name}</span>
+                        <div>${crmBadgeHtml}<span class="text-[11px] px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span></div>
                     </div>
-                    <div class="flex justify-between items-center mb-1 px-2">
-                        <div class="flex items-center gap-1.5">
-                            <p class="text-sm text-on-surface-variant font-body">${record.phone || ''}</p>
-                            <a class="w-5 h-5 flex items-center justify-center rounded-full ${isActive ? 'bg-white/50 hover:bg-white' : 'bg-surface-container-high hover:bg-surface-variant'} text-primary-container transition-colors" href="${telDigits ? `tel:${telDigits}` : '#'}">
-                                <span class="material-symbols-outlined text-[14px]">call</span>
-                            </a>
-                        </div>
-                        <p class="text-xs font-bold ${styles.suspectText} font-body">${record.suspect || ''}</p>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-on-surface-variant font-body">${record.phone}</span>
+                        <span class="text-xs font-bold font-body">${record.suspect}</span>
                     </div>
-                    <div class="flex justify-between items-center px-2">
-                        <span class="text-[10px] text-outline font-medium font-body">최근상담: ${record.dbEntryDateRaw}</span>
-                        <span class="text-[10px] text-outline font-medium font-body">${record.path || ''}</span>
-                    </div>
+                    <div class="text-[10px] text-outline mt-2 font-medium">최근상담: ${record.dbEntryDateRaw}</div>
                 `;
-                frag.appendChild(item);
+                container.appendChild(item);
             });
-            container.appendChild(frag);
         }
 
         function applyFilters() {
-            const focusStatuses = new Set(['계약완료', '대기', '보류', '명도보류', '가선보류']);
             state.filteredRecords = state.allRecords.filter((r) => {
-                const mOk = state.selectedMonth == null ? true : r.monthToken === state.selectedMonth;
+                const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
+                const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
                 const crmOk = state.crmOnly ? r.showCrmBadge === true : true;
-                const focusOk = state.focusOnly ? focusStatuses.has(r.contractStatus) : true;
-                return mOk && crmOk && focusOk;
+                const focusOk = state.focusOnly ? ['계약완료', '대기', '보류'].includes(r.contractStatus) : true;
+                return yOk && mOk && crmOk && focusOk;
             });
             state.selectedIndex = 0;
-            
-            // 필터 버튼 시각적 스위치 변경
-            const crmBtn = document.getElementById('filter-crm-btn');
-            const focusBtn = document.getElementById('filter-focus-btn');
-            const monthBtn = document.getElementById('filter-month-btn');
 
-            if(crmBtn) {
-                crmBtn.className = state.crmOnly 
-                    ? 'px-4 py-1.5 bg-primary-container text-white text-sm font-bold rounded-full transition-all active:scale-95 font-headline'
-                    : 'px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full transition-all active:scale-95 border border-primary-container/10 font-headline';
-            }
-            if(focusBtn) {
-                focusBtn.className = state.focusOnly 
-                    ? 'px-4 py-1.5 bg-primary-container text-white text-sm font-bold rounded-full transition-all active:scale-95 font-headline'
-                    : 'px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full transition-all active:scale-95 border border-primary-container/10 font-headline';
-            }
-            if(monthBtn) {
-                monthBtn.innerHTML = `${state.selectedMonth ? state.selectedMonth + '월' : '전체월'} <span class="material-symbols-outlined text-xs">keyboard_arrow_down</span>`;
-            }
-        }
-
-        function bindListClickAfterRender() {
-            const container = document.getElementById('prospect-list-container');
-            if (!container) return;
-            container.onclick = function (e) {
-                const card = e.target.closest('[data-index]');
-                if (!card) return;
-                const idx = Number(card.dataset.index);
-                if (Number.isNaN(idx)) return;
-                state.selectedIndex = idx;
-                renderList(state.filteredRecords);
-                if(state.filteredRecords.length > 0) renderDetail(state.filteredRecords[state.selectedIndex]);
-            };
+            document.getElementById('filter-crm-btn').className = state.crmOnly 
+                ? 'px-4 py-1.5 bg-primary-container text-white text-sm font-bold rounded-full transition-all' 
+                : 'px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full transition-all';
+            document.getElementById('filter-focus-btn').className = state.focusOnly 
+                ? 'px-4 py-1.5 bg-primary-container text-white text-sm font-bold rounded-full transition-all' 
+                : 'px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full transition-all';
         }
 
         function bindEvents() {
-            document.getElementById('filter-month-btn')?.addEventListener('click', () => {
-                if (state.selectedMonth == null) state.selectedMonth = 1;
-                else state.selectedMonth = state.selectedMonth < 12 ? state.selectedMonth + 1 : null;
-                applyFilters();
-                renderList(state.filteredRecords);
-                if(state.filteredRecords.length > 0) renderDetail(state.filteredRecords[state.selectedIndex]);
+            // 연도 및 월 필터 드롭다운 이벤트
+            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
+            
+            // 토글 버튼 이벤트
+            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
+            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); });
+            
+            // 가망 고객 탭을 누르면 전체 리스트로 복귀 (필터 완전 초기화)
+            document.getElementById('nav-all-prospects').addEventListener('click', () => {
+                state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all';
+                document.getElementById('filter-year-select').value = 'all';
+                document.getElementById('filter-month-select').value = 'all';
+                applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]);
             });
 
-            document.getElementById('filter-crm-btn')?.addEventListener('click', () => {
-                state.crmOnly = !state.crmOnly;
-                applyFilters();
+            // 카드 클릭 시 상세 창 변경
+            document.getElementById('prospect-list-container').addEventListener('click', (e) => {
+                const card = e.target.closest('[data-index]');
+                if (!card) return;
+                state.selectedIndex = Number(card.dataset.index);
                 renderList(state.filteredRecords);
-                if(state.filteredRecords.length > 0) renderDetail(state.filteredRecords[state.selectedIndex]);
+                renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
-            document.getElementById('filter-focus-btn')?.addEventListener('click', () => {
-                state.focusOnly = !state.focusOnly;
-                applyFilters();
-                renderList(state.filteredRecords);
-                if(state.filteredRecords.length > 0) renderDetail(state.filteredRecords[state.selectedIndex]);
+            // 신규 등록 로딩 없는 낙관적 업데이트
+            document.getElementById('new-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
+                state.allRecords.unshift(newRec);
+                document.getElementById('new-customer-modal').classList.add('hidden');
+                document.getElementById('nav-all-prospects').click(); // 등록 완료 시 초기화하여 최상단에 보여줌
             });
-
-            // 신규 고객 등록 로딩 지옥 방지 (낙관적 업데이트)
-            const form = document.getElementById('new-customer-form');
-            if(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault(); // 새로고침 완벽 차단
-
-                    const dateInput = document.getElementById('today-date').value;
-                    // date picker 날짜를 MM/DD 형식 텍스트로 임시 변환
-                    const d = new Date(dateInput);
-                    const rawDateStr = `${d.getMonth()+1}/${d.getDate()}/웹등록`;
-
-                    const newRec = normalizeRecord({
-                        name: document.getElementById('new-name').value,
-                        phone: document.getElementById('new-phone').value,
-                        path: document.getElementById('new-path').value,
-                        suspect: document.getElementById('new-suspect').value,
-                        firstCounselor: document.getElementById('new-counselor').value,
-                        contractStatus: document.getElementById('new-status').value,
-                        isNew: true, // CRM 뱃지 발동
-                        'DB유입날짜': rawDateStr
-                    }, state.allRecords.length);
-
-                    // 리스트 맨 위에 즉시 꽂아넣기
-                    state.allRecords.unshift(newRec); 
-                    
-                    // 모달 닫기 및 리셋
-                    document.getElementById('new-customer-modal').classList.add('hidden');
-                    form.reset();
-                    document.getElementById('today-date').value = new Date().toISOString().split('T')[0];
-
-                    // 화면 즉시 재렌더링
-                    state.crmOnly = false; // 필터 초기화해서 방금 등록한게 보이게 함
-                    state.focusOnly = false;
-                    applyFilters();
-                    renderList(state.filteredRecords);
-                    if(state.filteredRecords.length > 0) {
-                        state.selectedIndex = 0;
-                        renderDetail(state.filteredRecords[0]);
-                    }
-                });
-            }
         }
 
         try {
-            if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL.includes('PUT_YOUR')) return;
-            const url = `${GAS_WEBAPP_URL}?action=prospects&today=${encodeURIComponent(TODAY_FOR_FILTER)}`;
+            const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
             const res = await fetch(url, { method: 'GET' });
-            if (!res.ok) throw new Error(`GAS 응답 실패: ${res.status}`);
-
             const payload = await res.json();
-            const rawRecords = Array.isArray(payload?.records) ? payload.records : [];
-            state.allRecords = rawRecords.map(normalizeRecord);
-
-            applyFilters();
-            renderList(state.filteredRecords);
-            if(state.filteredRecords.length > 0) renderDetail(state.filteredRecords[0]);
-            
-            bindListClickAfterRender(); 
-            bindEvents();
-            
-        } catch (err) {
-            console.error('[GAS Prospect Sync] failed:', err);
-        }
+            state.allRecords = (payload.records || []).map(normalizeRecord);
+            applyFilters(); renderList(state.filteredRecords); renderDetail(state.filteredRecords[0]); bindEvents();
+        } catch (err) { console.error(err); }
     })();
 </script>
-<div class="fixed bottom-10 right-10 opacity-5 pointer-events-none select-none z-0">
-<span class="material-symbols-outlined text-[300px]" style="font-variation-settings: 'FILL' 1;">shield</span>
-</div>
 </body></html>
