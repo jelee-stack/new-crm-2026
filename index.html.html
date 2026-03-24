@@ -141,10 +141,10 @@
 <table class="w-full text-left border-collapse font-body">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant">DB 유입 날짜</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant">1차 상담자</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant">2차 상담자</th>
-<th class="px-6 py-3 text-xs font-bold text-outline-variant">안내 금액</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">DB 유입 날짜</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">1차 상담자</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">2차 상담자</th>
+<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
@@ -179,7 +179,7 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
                     <select id="bottom-status-select" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
-                        <option value="계약완료">계약완료</option><option value="대기">대기</option><option value="보류">보류</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option><option value="부재중">부재중</option>
+                        <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option>
                     </select>
                 </div>
                 <div class="flex items-end h-full self-end">
@@ -201,39 +201,39 @@
 </div>
 <form id="new-customer-form" class="p-8 space-y-5">
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
 <input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
 <input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
 <input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
 <input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
 <input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
 <select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
 <option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
 <select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
-<option>계약완료</option><option>대기</option><option>보류</option><option>타변</option><option>부재중</option>
+    <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
 <textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
 </div>
 <div class="pt-4 flex justify-end gap-3">
@@ -252,33 +252,33 @@
 </div>
 <form id="edit-customer-form" class="p-8 space-y-5">
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
 <input id="edit-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
 <input id="edit-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
 <input id="edit-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
 <input id="edit-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
 <input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
 <input id="edit-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-xs font-bold text-outline-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
 <select id="edit-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
-<option>계약완료</option><option>대기</option><option>보류</option><option>명도보류</option><option>가선보류</option><option>타변</option><option>부재중</option>
+    <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option>
 </select>
 </div>
 <div class="pt-4 flex justify-end gap-3">
@@ -304,7 +304,7 @@
             searchQuery: '', 
             currentPage: 1, 
             itemsPerPage: 30,
-            sortOrder: 'desc' // 최신순 기본값 세팅
+            sortOrder: 'desc'
         };
 
         function formatPhone(raw) {
@@ -316,13 +316,12 @@
             return v;
         }
 
-        // 연도/월 필터 분리. 에러 날짜는 화면에만 - 처리하고, 2025 데이터 필터링 살림
         function processDateText(raw) {
             const s = String(raw || '').trim();
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
             let clean = s; 
-            let y = 2025; // 1899 데이터의 실제 귀속 연도를 2025로 설정 (필터 대응)
+            let y = 2025; 
             let m = null;
 
             const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
@@ -372,7 +371,6 @@
             document.getElementById('detail-counselor2').textContent = record.secondCounselor;
             document.getElementById('detail-price').textContent = record.firstGuideAmount;
             
-            // 리스트에서 카드 클릭 시 하단 진행상태 변경 드롭다운 동기화
             const bottomStatusSelect = document.getElementById('bottom-status-select');
             if (bottomStatusSelect) bottomStatusSelect.value = record.contractStatus;
             
@@ -434,7 +432,6 @@
                 const isActive = globalIdx === state.selectedIndex;
                 const item = document.createElement('div');
                 
-                // 선택된 카드 디자인 완벽 100% 복구 (남색 두꺼운 띠, 연파랑 배경)
                 item.className = isActive
                     ? 'p-4 bg-[#eaedff] cursor-pointer border-l-4 border-[#000666] rounded-xl shadow-sm transition-all mb-3'
                     : 'p-4 bg-white hover:bg-surface-container-low cursor-pointer border border-outline-variant/10 rounded-xl transition-all mb-3';
@@ -465,7 +462,6 @@
         function applyFilters() {
             const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
             
-            // 필터 돌리기
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
@@ -481,9 +477,8 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 최신순 정렬 버튼 로직 반영 (기본 desc)
             if (state.sortOrder === 'desc') {
-                state.filteredRecords.reverse(); // 불러온 원본의 역순
+                state.filteredRecords.reverse(); 
             }
             
             state.currentPage = 1; 
@@ -509,7 +504,6 @@
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
-            // 최신순 토글 버튼 연결
             document.getElementById('btn-sort-toggle').addEventListener('click', () => {
                 state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
                 document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
@@ -532,10 +526,23 @@
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
+            // 하단 진행상태 변경 이벤트 연결
+            const bottomStatusSelect = document.getElementById('bottom-status-select');
+            if (bottomStatusSelect) {
+                bottomStatusSelect.addEventListener('change', (e) => {
+                    const record = state.filteredRecords[state.selectedIndex];
+                    if (!record) return;
+                    record.contractStatus = e.target.value;
+                    const originalRecord = state.allRecords.find(r => r.id === record.id);
+                    if (originalRecord) originalRecord.contractStatus = e.target.value;
+                    applyFilters(); renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
+                });
+            }
+
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
-                state.allRecords.push(newRec); // 역순 정렬 고려하여 push
+                state.allRecords.push(newRec); 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 document.getElementById('nav-all-prospects').click();
             });
