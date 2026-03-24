@@ -301,6 +301,7 @@
 
 <script>
     (async function initProspectsFromGAS() {
+        // [백엔드 연결 URL - GAS 배포된 새 URL로 덮어씌워주세요]
         const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
         
         const state = {
@@ -326,8 +327,31 @@
             return v;
         }
 
-        // 백엔드 수술 연동: GAS에서 보내주는 sheetYear/sheetMonth를 완벽하게 흡수
+        // [핵심 수술] 1900.01.15 처럼 점이나 대시로 이어지는 쓰레기 데이터는 연도를 싹둑 잘라버림
+        function processDateText(raw) {
+            const s = String(raw || '').trim();
+            if (!s || s === '-') return { cleanText: '-', year: null, month: null };
+
+            let clean = s; 
+            let y = 2026; 
+            let m = null;
+
+            // '1900.01.15' 또는 '1899-12-30' 같은 패턴 감지
+            const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
+            if (badYearMatch) {
+                m = parseInt(badYearMatch[2], 10);
+                // 화면 노출용 텍스트에서 망가진 연도를 버리고 '월.일'로만 예쁘게 처리
+                clean = `${m}.${parseInt(badYearMatch[3], 10)}`;
+            } else {
+                const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
+                if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
+                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); }
+            }
+            return { cleanText: clean, year: y, month: m };
+        }
+
         function normalizeRecord(rec, idx) {
+            const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
             const phone = formatPhone(rec.phone || rec.연락처 || '');
             const name = String(rec.name || rec.이름 || '').trim();
             
@@ -340,7 +364,6 @@
                 });
             }
 
-            // 시트 이름에서 파생된 연도/월(sheetYear, sheetMonth)을 최우선 기준으로 필터링 적용
             return {
                 id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
@@ -350,9 +373,9 @@
                 firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
                 secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
                 firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
-                dbEntryDateRaw: rec.lastConsultLabel || '-', // 화면 노출용
-                yearToken: rec.sheetYear || 2026,  // 백엔드가 준 시트 연도 적용
-                monthToken: rec.sheetMonth || null, // 백엔드가 준 시트 월 적용
+                dbEntryDateRaw: dateInfo.cleanText,
+                yearToken: rec.sheetYear || dateInfo.year,
+                monthToken: rec.sheetMonth || dateInfo.month,
                 suspect: rec.suspect || rec.혐의 || '',
                 path: rec.path || rec['경로'] || '',
                 consultationHistory: initialHistory 
@@ -506,9 +529,6 @@
             if (state.sortOrder === 'desc') {
                 state.filteredRecords.reverse(); 
             }
-            
-            // 데이터 변경, 정렬 변경 시에만 리셋되도록 
-            // (노트 등록 시에는 필터를 다시 태우지 않도록 이벤트 핸들러에서 분리)
         }
 
         function bindEvents() {
@@ -548,7 +568,6 @@
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
-            // 하단 진행상태 변경 (리셋 없이 화면만 갱신)
             const bottomStatusSelect = document.getElementById('bottom-status-select');
             if (bottomStatusSelect) {
                 bottomStatusSelect.addEventListener('change', (e) => {
@@ -561,7 +580,6 @@
                 });
             }
 
-            // 노트 연속 등록 버그 100% 수정 (리셋 없이 화면만 갱신)
             document.getElementById('btn-add-note').addEventListener('click', () => {
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
@@ -588,14 +606,13 @@
                 }
 
                 document.getElementById('note-content').value = ''; 
-                // applyFilters()를 빼서 보고 있던 위치 고정!
                 renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
-                state.allRecords.unshift(newRec); // 최신 데이터 위로
+                state.allRecords.unshift(newRec); 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 document.getElementById('nav-all-prospects').click();
             });
@@ -646,7 +663,6 @@
                 originalRecord.firstGuideAmount = document.getElementById('edit-price').value || '-';
                 originalRecord.contractStatus = document.getElementById('edit-status').value;
 
-                // 수정한 값 즉각 반영
                 record.dbEntryDateRaw = originalRecord.dbEntryDateRaw;
                 record.name = originalRecord.name;
                 record.phone = originalRecord.phone;
