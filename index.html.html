@@ -103,7 +103,13 @@
 <div class="p-6 pb-2 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
-<span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
+<div class="flex items-center gap-2">
+    <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
+    <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-2">
+        <span class="material-symbols-outlined text-lg">sort</span>
+        <span id="sort-text" class="text-[11px] font-bold font-body">최신순</span>
+    </button>
+</div>
 </div>
 </div>
 <div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0">
@@ -172,8 +178,8 @@
                 </div>
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
-                    <select class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
-                        <option>계약완료</option><option>대기</option><option>보류</option><option>명도보류</option><option>가선보류</option><option>타변</option><option>부재중</option>
+                    <select id="bottom-status-select" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
+                        <option value="계약완료">계약완료</option><option value="대기">대기</option><option value="보류">보류</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option><option value="부재중">부재중</option>
                     </select>
                 </div>
                 <div class="flex items-end h-full self-end">
@@ -297,7 +303,8 @@
             focusOnly: false,
             searchQuery: '', 
             currentPage: 1, 
-            itemsPerPage: 30 
+            itemsPerPage: 30,
+            sortOrder: 'desc' // 최신순 기본값 세팅
         };
 
         function formatPhone(raw) {
@@ -309,12 +316,13 @@
             return v;
         }
 
+        // 연도/월 필터 분리. 에러 날짜는 화면에만 - 처리하고, 2025 데이터 필터링 살림
         function processDateText(raw) {
             const s = String(raw || '').trim();
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
 
             let clean = s; 
-            let y = new Date().getFullYear(); 
+            let y = 2025; // 1899 데이터의 실제 귀속 연도를 2025로 설정 (필터 대응)
             let m = null;
 
             const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
@@ -324,7 +332,7 @@
             } else {
                 const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
                 if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
-                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); }
+                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); y = new Date().getFullYear(); }
             }
             return { cleanText: clean, year: y, month: m };
         }
@@ -363,6 +371,11 @@
             document.getElementById('detail-counselor1').textContent = record.firstCounselor;
             document.getElementById('detail-counselor2').textContent = record.secondCounselor;
             document.getElementById('detail-price').textContent = record.firstGuideAmount;
+            
+            // 리스트에서 카드 클릭 시 하단 진행상태 변경 드롭다운 동기화
+            const bottomStatusSelect = document.getElementById('bottom-status-select');
+            if (bottomStatusSelect) bottomStatusSelect.value = record.contractStatus;
+            
             document.getElementById('history-container').innerHTML = ''; 
         }
 
@@ -421,10 +434,10 @@
                 const isActive = globalIdx === state.selectedIndex;
                 const item = document.createElement('div');
                 
-                // 원상 복구된 예쁜 카드 디자인 (파란색 활성 / 하얀색 비활성)
+                // 선택된 카드 디자인 완벽 100% 복구 (남색 두꺼운 띠, 연파랑 배경)
                 item.className = isActive
-                    ? 'p-4 bg-[#eaedff] cursor-pointer border-2 border-[#000666] rounded-xl shadow-sm transition-all mb-3'
-                    : 'p-4 bg-white hover:bg-surface-container-low cursor-pointer border-b border-outline-variant/10 rounded-xl transition-all mb-3';
+                    ? 'p-4 bg-[#eaedff] cursor-pointer border-l-4 border-[#000666] rounded-xl shadow-sm transition-all mb-3'
+                    : 'p-4 bg-white hover:bg-surface-container-low cursor-pointer border border-outline-variant/10 rounded-xl transition-all mb-3';
                 item.dataset.index = String(globalIdx);
 
                 const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
@@ -452,6 +465,7 @@
         function applyFilters() {
             const focusTarget = ['보류', '대기', '부재중', '명도보류', '가선보류', '타변'];
             
+            // 필터 돌리기
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
@@ -466,6 +480,11 @@
 
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
+
+            // 최신순 정렬 버튼 로직 반영 (기본 desc)
+            if (state.sortOrder === 'desc') {
+                state.filteredRecords.reverse(); // 불러온 원본의 역순
+            }
             
             state.currentPage = 1; 
             state.selectedIndex = 0; 
@@ -490,6 +509,13 @@
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
+            // 최신순 토글 버튼 연결
+            document.getElementById('btn-sort-toggle').addEventListener('click', () => {
+                state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+                document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
+                applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
+            });
+
             document.getElementById('nav-all-prospects').addEventListener('click', () => {
                 state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all'; state.searchQuery = '';
                 document.getElementById('filter-year-select').value = 'all';
@@ -509,7 +535,7 @@
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRec = normalizeRecord({ name: document.getElementById('new-name').value, phone: document.getElementById('new-phone').value, isNew: true, 'DB유입날짜': '웹등록' }, state.allRecords.length);
-                state.allRecords.unshift(newRec);
+                state.allRecords.push(newRec); // 역순 정렬 고려하여 push
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 document.getElementById('nav-all-prospects').click();
             });
