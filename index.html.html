@@ -303,7 +303,8 @@
 
 <script>
     (async function initProspectsFromGAS() {
-        const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/snulaw.co.kr/s/AKfycbwDma6PDbd4vtCry2FOlp8IO-VNDUDzN-sWNMzaDV91Nhz6TI9Fg6h6GK1ty0vJNJ7K/exec';
+        // 백엔드 주소가 정확히 교체되었는지 꼭 확인 부탁드립니다!
+        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz_srLURhzcBbi09BQdoCyocSDj5r52vO6Fw685dKQSjCIMbHIFjjrh1LFq87647g-C/exec';
         
         const state = {
             allRecords: [],
@@ -329,7 +330,7 @@
         }
 
         function normalizeRecord(rec, idx) {
-            // 백엔드가 읽어온 원본 텍스트(예: "03/12/목")를 훼손 없이 그대로 화면에 띄움
+            // 백엔드가 넘겨준 "03/12/목" 글씨를 하이픈이나 빈칸 없이 무조건 100% 그대로 받습니다.
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
             const name = String(rec.name || '').trim();
@@ -343,19 +344,16 @@
                 });
             }
 
-            // '대기' 강제 기본값 삭제
-            const status = rec.contractStatus ? rec.contractStatus.trim() : '';
-
             return {
                 id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
                 phone: phone,
-                contractStatus: status,
+                contractStatus: rec.contractStatus ? rec.contractStatus.trim() : '',
                 showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
                 firstCounselor: rec.firstCounselor || '-',
                 secondCounselor: rec.secondCounselor || '-',
                 firstGuideAmount: rec.firstGuideAmount || '-',
-                dbEntryDateRaw: rawDateStr, 
+                dbEntryDateRaw: rawDateStr, // 찌꺼기 없는 안전한 원본 그대로
                 yearToken: rec.sheetYear || 2026,
                 monthToken: rec.sheetMonth || null,
                 suspect: rec.suspect || '',
