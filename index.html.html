@@ -37,7 +37,7 @@
 </head>
 <body class="bg-surface text-on-surface overflow-hidden">
 
-<aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 h-screen w-64 border-r-0 bg-[#faf8ff] z-50">
+<aside id="mobile-sidebar" class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 w-64 border-r border-outline-variant/10 bg-[#faf8ff] z-[60] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-2xl lg:shadow-none">
 <div class="flex items-center gap-3 mb-10 px-2">
 <div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg">
 <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">shield</span>
@@ -50,7 +50,7 @@
 <a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
 <span class="material-symbols-outlined">dashboard</span> 대시보드
         </a>
-<a id="nav-all-prospects" class="flex items-center gap-3 px-4 py-3 text-[#000666] font-bold border-r-4 border-[#000666] bg-[#eaedff] font-headline text-lg cursor-pointer transition-transform translate-x-1">
+<a id="nav-all-prospects" class="flex items-center gap-3 px-4 py-3 text-[#000666] font-bold border-r-4 border-[#000666] bg-[#eaedff] font-headline text-lg cursor-pointer transition-transform translate-x-1" onclick="if(window.innerWidth < 1024) toggleSidebar()">
 <span class="material-symbols-outlined">person_search</span> 가망 고객
         </a>
 <a class="flex items-center gap-3 px-4 py-3 text-[#353e91] opacity-70 hover:opacity-100 font-headline font-bold text-lg transition-all" href="#">
@@ -58,26 +58,30 @@
         </a>
 </nav>
 <div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-4">
-<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden')">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden'); if(window.innerWidth < 1024) toggleSidebar();">
 <span class="material-symbols-outlined text-xl">person_add</span> + 신규 고객 등록
         </button>
 </div>
 </aside>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-50 hidden lg:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
 
-<div class="ml-64 h-screen flex flex-col overflow-hidden">
-<header class="h-16 flex justify-between items-center px-8 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm shrink-0">
-<div class="flex items-center gap-6 flex-1">
-<div class="relative w-full max-w-sm">
+<div class="ml-0 lg:ml-64 h-screen flex flex-col overflow-hidden transition-all duration-300">
+<header class="shrink-0 flex flex-col lg:flex-row justify-between items-start lg:items-center p-4 lg:px-8 lg:h-16 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm gap-4 overflow-x-hidden">
+<div class="flex items-center gap-3 w-full lg:w-auto flex-1">
+<button class="lg:hidden material-symbols-outlined p-1.5 rounded-md hover:bg-surface-container-highest text-primary-container bg-surface transition-colors" onclick="toggleSidebar()">menu</button>
+<div class="relative w-full max-w-sm flex-1">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
 <input id="search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
 </div>
-<div class="flex items-center gap-2 text-sm font-bold font-body text-[#353e91]">
-<select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+</div>
+<div class="flex flex-row items-center justify-between w-full lg:w-auto gap-2 lg:gap-4 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide">
+<div class="flex items-center gap-1.5 lg:gap-2 text-sm font-bold font-body text-[#353e91] shrink-0">
+<select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm lg:text-sm focus:ring-0 cursor-pointer appearance-none pr-5 py-1">
 <option value="all">전체 연도</option>
 <option value="2026">2026년</option>
 <option value="2025">2025년</option>
 </select>
-<select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer appearance-none pr-6">
+<select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm lg:text-sm focus:ring-0 cursor-pointer appearance-none pr-5 py-1">
 <option value="all">전체 월</option>
 <option value="1">1월</option> <option value="2">2월</option> <option value="3">3월</option>
 <option value="4">4월</option> <option value="5">5월</option> <option value="6">6월</option>
@@ -85,106 +89,106 @@
 <option value="10">10월</option> <option value="11">11월</option> <option value="12">12월</option>
 </select>
 </div>
+<div class="flex items-center gap-1.5 lg:gap-3 shrink-0">
+<button id="filter-crm-btn" class="px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">CRM등록 모아보기</button>
+<button id="filter-focus-btn" class="px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">집중관리</button>
 </div>
-<div class="flex items-center gap-3">
-<button id="filter-crm-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">CRM등록 모아보기</button>
-<button id="filter-focus-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline">집중관리</button>
 </div>
 </header>
 
-<main class="flex-1 flex overflow-hidden relative">
+<main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
     <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
 </div>
 
-<section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
-<div class="p-6 pb-2 shrink-0">
-<div class="flex justify-between items-center mb-4">
-<h2 class="text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+<section class="w-full lg:w-[400px] h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0 min-h-0">
+<div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/50 backdrop-blur-sm z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none lg:bg-transparent">
+<div class="flex justify-between items-center mb-2 lg:mb-4">
+<h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <div class="flex items-center gap-2">
-    <span id="badge-total-count" class="text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
-    <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-2">
-        <span class="material-symbols-outlined text-lg">sort</span>
-        <span id="sort-text" class="text-[11px] font-bold font-body">최신순</span>
+    <span id="badge-total-count" class="text-[10px] lg:text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
+    <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-1 lg:ml-2">
+        <span class="material-symbols-outlined text-base lg:text-lg">sort</span>
+        <span id="sort-text" class="text-[10px] lg:text-[11px] font-bold font-body">최신순</span>
     </button>
 </div>
 </div>
 </div>
-<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0">
+<div id="prospect-list-container" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0 pt-2 lg:pt-0">
 </div>
-<div class="p-4 border-t border-outline-variant/10 bg-white shrink-0 flex flex-col items-center">
-    <div id="pagination-container" class="flex items-center justify-center gap-1"></div>
-    <p id="pagination-info" class="text-[10px] text-center text-outline-variant mt-2 font-medium">Page 1 of 1</p>
+<div class="p-3 lg:p-4 border-t border-outline-variant/10 bg-white shrink-0 flex flex-col items-center">
+    <div id="pagination-container" class="flex items-center justify-center gap-1 flex-wrap"></div>
+    <p id="pagination-info" class="text-[9px] lg:text-[10px] text-center text-outline-variant mt-1 lg:mt-2 font-medium">Page 1 of 1</p>
 </div>
 </section>
 
-<section class="flex-1 bg-surface flex flex-col h-full overflow-hidden">
-<div class="p-8 pb-4 shrink-0">
-<div class="flex justify-between items-end mb-8">
-<div>
-<h2 id="detail-title" class="text-4xl font-black font-headline text-primary-container mb-1">고객 상세</h2>
-<span class="flex items-center gap-3 text-lg font-bold text-on-surface">
+<section id="detail-section" class="flex-1 bg-surface flex flex-col h-[60vh] lg:h-full overflow-hidden">
+<div class="p-5 lg:p-8 pb-2 lg:pb-4 shrink-0">
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-4 lg:mb-8 gap-4">
+<div class="w-full lg:w-auto">
+<h2 id="detail-title" class="text-2xl lg:text-4xl font-black font-headline text-primary-container mb-2 lg:mb-1 truncate w-full">고객 상세</h2>
+<span class="flex items-center gap-3 text-base lg:text-lg font-bold text-on-surface">
     <span id="detail-phone-text">-</span>
     <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">call</span>
+        <span class="material-symbols-outlined text-lg lg:text-xl">call</span>
     </a>
 </span>
 </div>
-<div class="flex gap-2">
-<button id="btn-edit-prospect" class="px-5 py-2 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline">수정하기</button>
-<button id="btn-take-case" class="px-5 py-2 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline">사건 수임</button>
+<div class="flex gap-2 w-full lg:w-auto">
+<button id="btn-edit-prospect" class="flex-1 lg:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline shadow-sm">수정하기</button>
+<button id="btn-take-case" class="flex-1 lg:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline hover:scale-[1.02] active:scale-95 transition-all">사건 수임</button>
 </div>
 </div>
-<div class="overflow-hidden rounded-xl border border-outline-variant/10 shadow-sm">
-<table class="w-full text-left border-collapse font-body">
+<div class="overflow-x-auto rounded-xl border border-outline-variant/10 shadow-sm w-full bg-white">
+<table class="w-full text-left border-collapse font-body min-w-[500px]">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-6 py-3 text-[14px] font-black text-on-surface">DB 유입 날짜</th>
-<th class="px-6 py-3 text-[14px] font-black text-on-surface">1차 상담자</th>
-<th class="px-6 py-3 text-[14px] font-black text-on-surface">2차 상담자</th>
-<th class="px-6 py-3 text-[14px] font-black text-on-surface">안내 금액</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">DB 유입 날짜</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">1차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">2차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
 <tr class="border-b border-outline-variant/5">
-<td id="detail-date" class="px-6 py-4 font-semibold text-on-surface">-</td>
-<td id="detail-counselor1" class="px-6 py-4 text-on-surface-variant">-</td>
-<td id="detail-counselor2" class="px-6 py-4 text-on-surface-variant">-</td>
-<td id="detail-price" class="px-6 py-4 font-black text-primary-container">-</td>
+<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-sm lg:text-base text-on-surface whitespace-nowrap">-</td>
+<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-sm lg:text-base text-primary-container whitespace-nowrap">-</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="flex-1 overflow-y-auto px-8 py-4 bg-surface-container-low/30">
-<h3 class="text-sm font-bold text-outline-variant uppercase tracking-widest mb-6">상담 히스토리</h3>
-<div id="history-container" class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20">
+<div class="flex-1 overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
+<h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
+<div id="history-container" class="relative pl-6 lg:pl-8 space-y-5 lg:space-y-6 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
 </div>
 </div>
 
-<div class="p-8 bg-white border-t border-outline-variant/10 shrink-0">
-    <div class="flex gap-4 items-start">
-        <div class="flex-1 space-y-4">
-            <textarea id="note-content" class="w-full p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
-            <div class="flex items-center gap-6">
+<div class="p-4 lg:p-8 bg-white border-t border-outline-variant/10 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:shadow-none z-20">
+    <div class="flex flex-col gap-3 lg:gap-4">
+        <textarea id="note-content" class="w-full p-3 lg:p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[80px] lg:min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-6">
+            <div class="flex gap-3 w-full lg:flex-1">
                 <div class="flex-1">
-                    <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">다음 연락 예정일</label>
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
                     <div class="relative">
-                        <input id="note-date" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
-                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-lg">calendar_month</span>
+                        <input id="note-date" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
+                        <span class="material-symbols-outlined absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-base lg:text-lg">calendar_month</span>
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
-                    <select id="bottom-status-select" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
+                    <select id="bottom-status-select" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
                         <option value="">상태 없음</option>
                         <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
                     </select>
                 </div>
-                <div class="flex items-end h-full self-end">
-                    <button id="btn-add-note" class="px-8 py-2.5 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline">노트 등록</button>
-                </div>
+            </div>
+            <div class="w-full lg:w-auto mt-1 lg:mt-0 flex items-end">
+                <button id="btn-add-note" class="w-full lg:w-auto px-8 py-2.5 lg:py-3 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline text-sm lg:text-base">노트 등록</button>
             </div>
         </div>
     </div>
@@ -193,117 +197,125 @@
 </main>
 </div>
 
-<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="new-customer-modal">
+<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 lg:p-0" id="new-customer-modal">
 <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
-<h3 class="text-xl font-headline font-bold text-primary-container">신규 고객 등록</h3>
-<button class="material-symbols-outlined text-outline" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
+<div class="p-5 lg:p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<h3 class="text-lg lg:text-xl font-headline font-bold text-primary-container">신규 고객 등록</h3>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors" onclick="document.getElementById('new-customer-modal').classList.add('hidden')">close</button>
 </div>
-<form id="new-customer-form" class="p-8 space-y-5">
+<form id="new-customer-form" class="p-5 lg:p-8 space-y-4 lg:space-y-5">
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
-<input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
-</div>
-<div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
-<input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="today-date" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
-<input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="new-name" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
-<input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="new-phone" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
-<input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="new-path" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
-<select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="new-suspect" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
 <option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
-<select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="new-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
     <option value="">선택 안함</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">상담 메모</label>
-<textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">상담 메모</label>
+<textarea id="new-memo" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[100px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
 </div>
-<div class="pt-4 flex justify-end gap-3">
-<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
-<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">등록 완료</button>
+<div class="pt-2 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm" type="submit">등록 완료</button>
 </div>
 </form>
 </div>
 </div>
 
-<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="edit-customer-modal">
+<div class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 lg:p-0" id="edit-customer-modal">
 <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
-<h3 class="text-xl font-headline font-bold text-primary-container">고객 정보 수정</h3>
-<button class="material-symbols-outlined text-outline" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')">close</button>
+<div class="p-5 lg:p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<h3 class="text-lg lg:text-xl font-headline font-bold text-primary-container">고객 정보 수정</h3>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')">close</button>
 </div>
-<form id="edit-customer-form" class="p-8 space-y-5">
+<form id="edit-customer-form" class="p-5 lg:p-8 space-y-4 lg:space-y-5">
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
-<input id="edit-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
-</div>
-<div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
-<input id="edit-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<input id="edit-date" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
-<input id="edit-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
+<input id="edit-name" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
-<input id="edit-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
+<input id="edit-phone" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
-<input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
+<input id="edit-path" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
-<div class="flex gap-4">
+<div class="space-y-1">
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
+<input id="edit-suspect" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+</div>
+<div class="flex gap-3 lg:gap-4 flex-col sm:flex-row">
     <div class="space-y-1 flex-1">
-    <label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
-    <input id="edit-counselor1" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    <label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+    <input id="edit-counselor1" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
     </div>
     <div class="space-y-1 flex-1">
-    <label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">2차 상담자</label>
-    <input id="edit-counselor2" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
+    <label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">2차 상담자</label>
+    <input id="edit-counselor2" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
     </div>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">안내 금액</label>
-<input id="edit-price" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text" placeholder="예: 5,500,000"/>
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">안내 금액</label>
+<input id="edit-price" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text" placeholder="예: 5,500,000"/>
 </div>
 <div class="space-y-1">
-<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
-<select id="edit-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<select id="edit-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
     <option value="">상태 없음</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
 </div>
-<div class="pt-4 flex justify-end gap-3">
-<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
-<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all" type="submit">수정 완료</button>
+<div class="pt-2 flex justify-end gap-3">
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm" type="submit">수정 완료</button>
 </div>
 </form>
 </div>
 </div>
 
 <script>
+    // 모바일 사이드바 토글 전역 함수
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    };
+
     (async function initProspectsFromGAS() {
-        // 백엔드 주소가 정확히 교체되었는지 꼭 확인 부탁드립니다!
+        // [반드시 교체!] 지은 님이 방금 구글 시트에서 '새 배포' 후 얻은 URL을 넣어주세요!
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz_srLURhzcBbi09BQdoCyocSDj5r52vO6Fw685dKQSjCIMbHIFjjrh1LFq87647g-C/exec';
         
         const state = {
@@ -330,7 +342,6 @@
         }
 
         function normalizeRecord(rec, idx) {
-            // 백엔드가 넘겨준 "03/12/목" 글씨를 하이픈이나 빈칸 없이 무조건 100% 그대로 받습니다.
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
             const name = String(rec.name || '').trim();
@@ -353,7 +364,7 @@
                 firstCounselor: rec.firstCounselor || '-',
                 secondCounselor: rec.secondCounselor || '-',
                 firstGuideAmount: rec.firstGuideAmount || '-',
-                dbEntryDateRaw: rawDateStr, // 찌꺼기 없는 안전한 원본 그대로
+                dbEntryDateRaw: rawDateStr, 
                 yearToken: rec.sheetYear || 2026,
                 monthToken: rec.sheetMonth || null,
                 suspect: rec.suspect || '',
@@ -389,20 +400,20 @@
                     const wrap = document.createElement('div');
                     wrap.className = 'relative';
                     wrap.innerHTML = `
-                        <div class="absolute -left-7 top-1 w-4 h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-4 border-surface shadow-sm"></div>
-                        <div class="bg-white p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${h.date}</span>
-                                <span class="text-xs font-medium text-outline font-body">작성자: ${h.author}</span>
+                        <div class="absolute -left-6 lg:-left-7 top-1 w-3 h-3 lg:w-4 lg:h-4 rounded-full ${idx === 0 ? 'bg-primary-container' : 'bg-surface-container-highest'} border-[3px] lg:border-4 border-surface shadow-sm"></div>
+                        <div class="bg-white p-4 lg:p-5 rounded-xl shadow-sm border border-outline-variant/5 ${idx > 0 ? 'opacity-80' : ''}">
+                            <div class="flex justify-between items-center mb-2 lg:mb-3">
+                                <span class="text-[10px] lg:text-xs font-bold text-on-primary-fixed-variant bg-surface-container px-2 py-1 rounded font-body">${h.date}</span>
+                                <span class="text-[10px] lg:text-xs font-medium text-outline font-body">작성자: ${h.author}</span>
                             </div>
-                            <p class="text-sm text-on-surface leading-relaxed font-body whitespace-pre-wrap">${h.content}</p>
+                            <p class="text-xs lg:text-sm text-on-surface leading-relaxed font-body whitespace-pre-wrap">${h.content}</p>
                         </div>
                     `;
                     frag.appendChild(wrap);
                 });
                 historyHost.appendChild(frag);
             } else {
-                historyHost.innerHTML = '<p class="text-sm text-outline-variant italic">기록된 상담 히스토리가 없습니다.</p>';
+                historyHost.innerHTML = '<p class="text-xs lg:text-sm text-outline-variant italic">기록된 상담 히스토리가 없습니다.</p>';
             }
         }
 
@@ -418,17 +429,17 @@
                 btn.innerHTML = text;
                 btn.disabled = disabled;
                 if (isCurrent) {
-                    btn.className = 'w-8 h-8 rounded-lg bg-primary-container text-white text-xs font-bold font-body mx-0.5';
+                    btn.className = 'w-7 h-7 lg:w-8 lg:h-8 rounded-md lg:rounded-lg bg-primary-container text-white text-xs font-bold font-body mx-0.5';
                 } else {
                     btn.className = disabled 
-                        ? 'p-1.5 text-outline opacity-30 cursor-not-allowed mx-0.5' 
-                        : 'w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface-variant text-xs font-bold font-body transition-colors mx-0.5';
+                        ? 'p-1 lg:p-1.5 text-outline opacity-30 cursor-not-allowed mx-0.5' 
+                        : 'w-7 h-7 lg:w-8 lg:h-8 rounded-md lg:rounded-lg hover:bg-surface-container text-on-surface-variant text-xs font-bold font-body transition-colors mx-0.5';
                 }
                 if (!disabled && onClick) btn.addEventListener('click', onClick);
                 return btn;
             };
 
-            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_left</span>', state.currentPage === 1, false, () => {
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-[12px] lg:text-sm">chevron_left</span>', state.currentPage === 1, false, () => {
                 state.currentPage--; renderList();
             }));
 
@@ -442,7 +453,7 @@
                 }));
             }
 
-            container.appendChild(createBtn('<span class="material-symbols-outlined text-sm">chevron_right</span>', state.currentPage === totalPages, false, () => {
+            container.appendChild(createBtn('<span class="material-symbols-outlined text-[12px] lg:text-sm">chevron_right</span>', state.currentPage === totalPages, false, () => {
                 state.currentPage++; renderList();
             }));
         }
@@ -462,23 +473,23 @@
                 const item = document.createElement('div');
                 
                 item.className = isActive
-                    ? 'p-4 bg-[#eaedff] cursor-pointer border-l-4 border-[#000666] rounded-xl shadow-sm transition-all mb-3'
-                    : 'p-4 bg-white hover:bg-surface-container-low cursor-pointer border border-outline-variant/10 rounded-xl transition-all mb-3';
+                    ? 'p-3 lg:p-4 bg-[#eaedff] cursor-pointer border-l-[3px] lg:border-l-4 border-[#000666] rounded-lg lg:rounded-xl shadow-sm transition-all mb-2 lg:mb-3'
+                    : 'p-3 lg:p-4 bg-white hover:bg-surface-container-low cursor-pointer border border-outline-variant/10 rounded-lg lg:rounded-xl transition-all mb-2 lg:mb-3';
                 item.dataset.index = String(globalIdx);
 
-                const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
-                const statusBadge = record.contractStatus ? `<span class="text-[11px] px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span>` : '';
+                const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[9px] lg:text-[10px] px-1 lg:px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
+                const statusBadge = record.contractStatus ? `<span class="text-[10px] lg:text-[11px] px-1.5 lg:px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span>` : '';
 
                 item.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-lg font-headline">${record.name}</span>
-                        <div>${crmBadgeHtml}${statusBadge}</div>
+                        <span class="font-bold text-base lg:text-lg font-headline">${record.name}</span>
+                        <div class="flex items-center">${crmBadgeHtml}${statusBadge}</div>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
+                    <div class="flex justify-between items-center text-xs lg:text-sm">
                         <span class="text-on-surface-variant font-body">${record.phone}</span>
-                        <span class="text-xs font-bold font-body">${record.suspect}</span>
+                        <span class="text-[10px] lg:text-xs font-bold font-body">${record.suspect}</span>
                     </div>
-                    <div class="text-[10px] text-outline mt-2 font-medium flex justify-between items-center">
+                    <div class="text-[9px] lg:text-[10px] text-outline mt-1.5 lg:mt-2 font-medium flex justify-between items-center">
                         <span>최근상담: ${record.dbEntryDateRaw}</span>
                         <span>${record.path}</span>
                     </div>
@@ -487,6 +498,16 @@
             });
 
             renderPagination(state.filteredRecords.length);
+        }
+
+        // [핵심 해결] 토글 버튼 색상 전환 클래스 재설정
+        function updateToggleUI() {
+            document.getElementById('filter-crm-btn').className = state.crmOnly 
+                ? 'px-3 lg:px-4 py-1.5 bg-primary-container text-white text-xs lg:text-sm font-bold rounded-full transition-all font-headline whitespace-nowrap shadow-md' 
+                : 'px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap';
+            document.getElementById('filter-focus-btn').className = state.focusOnly 
+                ? 'px-3 lg:px-4 py-1.5 bg-primary-container text-white text-xs lg:text-sm font-bold rounded-full transition-all font-headline whitespace-nowrap shadow-md' 
+                : 'px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap';
         }
 
         function applyFilters() {
@@ -510,6 +531,8 @@
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
+            
+            updateToggleUI(); // 필터 적용 시 토글 버튼 UI 즉시 갱신
         }
 
         function bindEvents() {
@@ -522,6 +545,8 @@
 
             document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
+            
+            // 토글 버튼 누를 때마다 상태 변경
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
@@ -539,6 +564,7 @@
                 document.getElementById('search-input').value = '';
                 state.currentPage = 1; state.selectedIndex = 0;
                 applyFilters(); renderList(); renderDetail(state.filteredRecords[0]);
+                if(window.innerWidth < 1024) toggleSidebar();
             });
 
             document.getElementById('prospect-list-container').addEventListener('click', (e) => {
