@@ -326,7 +326,6 @@
             return v;
         }
 
-        // [핵심 해결] 날짜를 100% 온전하게 받아와서 화면에 띄우는 함수로 복구!
         function processDateText(raw) {
             const s = String(raw || '').trim();
             if (!s || s === '-') return { cleanText: '-', year: null, month: null };
@@ -338,17 +337,25 @@
             const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
             if (badYearMatch) {
                 m = parseInt(badYearMatch[2], 10);
-                clean = `${m}.${parseInt(badYearMatch[3], 10)}`;
+                const d = parseInt(badYearMatch[3], 10);
+                clean = `${m}월 ${d}일`; 
             } else {
                 const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
-                if (ymdMatch) { y = parseInt(ymdMatch[1], 10); m = parseInt(ymdMatch[2], 10); } 
-                else if (s.match(/^(\d{1,2})[\/\.월]/)) { m = parseInt(s.match(/^(\d{1,2})[\/\.월]/)[1], 10); }
+                if (ymdMatch) { 
+                    y = parseInt(ymdMatch[1], 10); 
+                    m = parseInt(ymdMatch[2], 10); 
+                } else {
+                    const mdMatch = s.match(/^(\d{1,2})[\/\.월]/);
+                    if (mdMatch) { m = parseInt(mdMatch[1], 10); }
+                }
             }
             return { cleanText: clean, year: y, month: m };
         }
 
         function normalizeRecord(rec, idx) {
-            const dateInfo = processDateText(rec.dbEntryDate || rec['DB유입날짜'] || rec.lastConsultLabel || '');
+            // [정답 복구 완료] 이전 코드에서 제가 빼먹었던 날짜 원본 연결고리입니다.
+            const rawDate = rec.lastConsultLabel || rec.dbEntryDateRaw || rec['DB유입날짜'] || '';
+            const dateInfo = processDateText(rawDate);
             const phone = formatPhone(rec.phone || rec.연락처 || '');
             const name = String(rec.name || rec.이름 || '').trim();
             
@@ -370,7 +377,7 @@
                 firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
                 secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
                 firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
-                dbEntryDateRaw: dateInfo.cleanText, // [진짜 원인 해결] 누락됐던 연결고리 완벽 복구
+                dbEntryDateRaw: dateInfo.cleanText, 
                 yearToken: rec.sheetYear || dateInfo.year,
                 monthToken: rec.sheetMonth || dateInfo.month,
                 suspect: rec.suspect || rec.혐의 || '',
@@ -523,7 +530,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            if (state.sortOrder === 'desc') {
+            if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
         }
