@@ -3,12 +3,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>법무법인 에스 CRM - 가망 고객 관리</title>
-<script src="[https://cdn.tailwindcss.com?plugins=forms,container-queries](https://cdn.tailwindcss.com?plugins=forms,container-queries)"></script>
-<link href="[https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap](https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap)" rel="stylesheet"/>
-<link href="[https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css](https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css)" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
 <style>
-        @font-face { font-family: 'Gmarket_Sans'; src: url('[https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff](https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff)') format('woff'); font-weight: normal; font-style: normal; }
-        @font-face { font-family: 'Gmarket_Sans'; src: url('[https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff](https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff)') format('woff'); font-weight: bold; font-style: normal; }
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Gmarket_Sans'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff'); font-weight: bold; font-style: normal; }
         body { font-family: 'Pretendard', sans-serif; }
         .font-gmarket { font-family: 'Gmarket_Sans', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -100,7 +100,7 @@
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">초고속 서버에서 데이터를 동기화 중입니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">글로벌 저장소에서 데이터를 동기화 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -316,7 +316,7 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [필수!!] 지은 님의 최신 웹 앱 URL (새 배포 후 얻은 주소)를 반드시 넣어주세요.
+        // [여기에 지은 님의 웹 앱 주소를 넣어주세요!]
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyRpMvWhiSSgFcWLHbFTD5rnn9hkbUPTNfLCgHUXK8qwQwjHfCEhhqFOrsWWubRIzWb/exec';
         
         const state = {
@@ -501,7 +501,6 @@
             renderPagination(state.filteredRecords.length);
         }
 
-        // [복구] 토글 버튼 색상 전환 클래스
         function updateToggleUI() {
             document.getElementById('filter-crm-btn').className = state.crmOnly 
                 ? 'px-3 lg:px-4 py-1.5 bg-primary-container text-white text-xs lg:text-sm font-bold rounded-full transition-all font-headline whitespace-nowrap shadow-md' 
@@ -534,6 +533,18 @@
             }
             
             updateToggleUI(); 
+        }
+
+        function updateUIWithData(payload) {
+            state.allRecords = (payload.records || []).map(normalizeRecord);
+            applyFilters(); renderList(); 
+            
+            if(state.filteredRecords.length > 0) {
+                const currentRec = state.filteredRecords[state.selectedIndex];
+                renderDetail(currentRec || state.filteredRecords[0]);
+            } else {
+                renderDetail(null);
+            }
         }
 
         function bindEvents() {
@@ -689,22 +700,24 @@
             if(dateInput) dateInput.value = today;
         }
 
-        // [핵심] 글로벌 캐시 데이터 가져오기 로직
-        try {
-            const url = `${GAS_WEBAPP_URL}?action=prospects`;
-            const res = await fetch(url);
-            const payload = await res.json();
-            
-            state.allRecords = (payload.records || []).map(normalizeRecord);
-            state.currentPage = 1; state.selectedIndex = 0;
-            applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); bindEvents();
-        } catch (err) { 
-            console.error(err); 
-        } finally {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            loadingOverlay.classList.add('fade-out');
-            setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+        async function fetchAndSyncData() {
+            try {
+                const url = `${GAS_WEBAPP_URL}?action=prospects`;
+                const res = await fetch(url);
+                const payload = await res.json();
+                
+                updateUIWithData(payload);
+                bindEvents();
+            } catch (err) {
+                console.error('데이터 로딩 실패:', err);
+            } finally {
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.add('fade-out');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
         }
+
+        fetchAndSyncData();
     })();
 </script>
 </body></html>
