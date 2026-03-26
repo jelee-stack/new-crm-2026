@@ -100,7 +100,7 @@
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">글로벌 저장소에서 데이터를 동기화 중입니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트와 실시간 연동 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -316,10 +316,9 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [필수!!] 여기에 지은 님의 ⚡️모든 사용자 권한으로 배포된 웹 앱 주소⚡️를 꼭 넣어주세요!
-        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxjbW9db4plkyFx1n5EvbPntaw5IxKzyiwak-vAG1R8dDX2YRzFMNTYJa2Vumziwu1c/exec';
+        // [필수!!] 여기에 지은 님의 웹 앱 주소를 꼭 넣어주세요!
+        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const CACHE_KEY = 'crm_global_data_v4';
         let isEventsBound = false;
 
         const today = new Date();
@@ -722,21 +721,19 @@
             }
         }
 
-        async function fetchAndSyncData(isBackground = false) {
+        // [핵심] 순정 직통 로딩 함수 
+        async function fetchAndSyncData() {
             try {
-                if (!isBackground) document.getElementById('loading-overlay').classList.remove('hidden');
+                document.getElementById('loading-overlay').classList.remove('hidden');
                 
                 const url = `${GAS_WEBAPP_URL}?action=prospects`;
                 const res = await fetch(url);
                 
-                // 만약 백엔드 권한 설정(CORS) 오류로 데이터를 못 가져오면 에러 알림 띄우기
                 if (!res.ok) {
                     throw new Error(`데이터를 불러올 수 없습니다. 상태 코드: ${res.status}`);
                 }
                 
                 const payload = await res.json();
-                
-                localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
                 updateUIWithData(payload);
                 
                 if (!isEventsBound) {
@@ -745,8 +742,7 @@
                 }
             } catch (err) {
                 console.error('데이터 동기화 실패:', err);
-                // 에러 발생 시 사용자에게 팝업으로 알림
-                alert('데이터 연결 에러가 발생했습니다!\n\n1. 웹 앱 배포 시 "접근 권한"을 "모든 사용자"로 하셨는지 확인해주세요.\n2. 방금 발급받은 주소를 코드를 정확히 복사하셨는지 확인해주세요.\n\n에러 메시지: ' + err.message);
+                alert('데이터 연결 에러가 발생했습니다!\n\n1. 앱스 스크립트 배포 시 "접근 권한"을 "모든 사용자"로 하셨는지 확인해주세요.\n2. 방금 발급받은 새 주소를 정확히 복사하셨는지 확인해주세요.\n\n에러 메시지: ' + err.message);
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
@@ -754,22 +750,8 @@
             }
         }
 
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-            try {
-                const payload = JSON.parse(cachedData);
-                updateUIWithData(payload);
-                document.getElementById('loading-overlay').classList.add('hidden');
-                bindEvents();
-                isEventsBound = true;
-                
-                fetchAndSyncData(true);
-            } catch(e) {
-                fetchAndSyncData(false);
-            }
-        } else {
-            fetchAndSyncData(false);
-        }
+        // 페이지 진입 시 무조건 최신 데이터 가져오기
+        fetchAndSyncData();
     })();
 </script>
 </body></html>
