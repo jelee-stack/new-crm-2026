@@ -96,7 +96,6 @@
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
     <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
-    <p class="mt-2 text-xs font-bold text-outline-variant">데이터베이스 연동으로 약 3~5초 정도 소요될 수 있습니다.</p>
 </div>
 
 <section class="w-[400px] border-r border-outline-variant/10 bg-surface flex flex-col h-full overflow-hidden shrink-0 min-h-0">
@@ -141,10 +140,10 @@
 <table class="w-full text-left border-collapse font-body">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">DB 유입 날짜</th>
-<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">1차 상담자</th>
-<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">2차 상담자</th>
-<th class="px-6 py-3 text-[13px] font-black text-on-surface-variant">안내 금액</th>
+<th class="px-6 py-3 text-[14px] font-black text-on-surface">DB 유입 날짜</th>
+<th class="px-6 py-3 text-[14px] font-black text-on-surface">1차 상담자</th>
+<th class="px-6 py-3 text-[14px] font-black text-on-surface">2차 상담자</th>
+<th class="px-6 py-3 text-[14px] font-black text-on-surface">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
@@ -179,6 +178,7 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">진행 상태 변경</label>
                     <select id="bottom-status-select" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
+                        <option value="">상태 없음</option>
                         <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
                     </select>
                 </div>
@@ -201,39 +201,40 @@
 </div>
 <form id="new-customer-form" class="p-8 space-y-5">
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
 <input id="today-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="date"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
 <input id="new-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="고객명 입력" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
 <input id="new-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="010-0000-0000" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
 <input id="new-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 블로그, 유튜브" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
 <input id="new-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="예: 명도소송, 음주운전" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
 <select id="new-counselor" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
 <option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
 <select id="new-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+    <option value="">선택 안함</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">상담 메모</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">상담 메모</label>
 <textarea id="new-memo" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[120px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
 </div>
 <div class="pt-4 flex justify-end gap-3">
@@ -252,42 +253,43 @@
 </div>
 <form id="edit-customer-form" class="p-8 space-y-5">
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">DB 유입 날짜</label>
 <input id="edit-date" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">이름</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">이름</label>
 <input id="edit-name" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">전화번호</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">전화번호</label>
 <input id="edit-phone" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="tel" required/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">경로</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">경로</label>
 <input id="edit-path" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">혐의</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">혐의</label>
 <input id="edit-suspect" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
 </div>
 <div class="flex gap-4">
     <div class="space-y-1 flex-1">
-    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">1차 상담자</label>
+    <label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
     <input id="edit-counselor1" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
     </div>
     <div class="space-y-1 flex-1">
-    <label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">2차 상담자</label>
+    <label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">2차 상담자</label>
     <input id="edit-counselor2" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text"/>
     </div>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">안내 금액</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">안내 금액</label>
 <input id="edit-price" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" type="text" placeholder="예: 5,500,000"/>
 </div>
 <div class="space-y-1">
-<label class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider ml-1 font-body">계약 여부</label>
+<label class="text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
 <select id="edit-status" class="w-full px-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+    <option value="">상태 없음</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
 </div>
@@ -326,62 +328,38 @@
             return v;
         }
 
-        function processDateText(raw) {
-            const s = String(raw || '').trim();
-            if (!s || s === '-') return { cleanText: '-', year: null, month: null };
-
-            let clean = s; 
-            let y = 2026; 
-            let m = null;
-
-            const badYearMatch = s.match(/^(1899|1900|1890)[\.\-](\d{1,2})[\.\-](\d{1,2})/);
-            if (badYearMatch) {
-                m = parseInt(badYearMatch[2], 10);
-                const d = parseInt(badYearMatch[3], 10);
-                clean = `${m}월 ${d}일`; 
-            } else {
-                const ymdMatch = s.match(/(20\d{2})[\.\-년\s]+(\d{1,2})/);
-                if (ymdMatch) { 
-                    y = parseInt(ymdMatch[1], 10); 
-                    m = parseInt(ymdMatch[2], 10); 
-                } else {
-                    const mdMatch = s.match(/^(\d{1,2})[\/\.월]/);
-                    if (mdMatch) { m = parseInt(mdMatch[1], 10); }
-                }
-            }
-            return { cleanText: clean, year: y, month: m };
-        }
-
         function normalizeRecord(rec, idx) {
-            // [정답 복구 완료] 이전 코드에서 제가 빼먹었던 날짜 원본 연결고리입니다.
-            const rawDate = rec.lastConsultLabel || rec.dbEntryDateRaw || rec['DB유입날짜'] || '';
-            const dateInfo = processDateText(rawDate);
-            const phone = formatPhone(rec.phone || rec.연락처 || '');
-            const name = String(rec.name || rec.이름 || '').trim();
+            // 백엔드가 읽어온 원본 텍스트(예: "03/12/목")를 훼손 없이 그대로 화면에 띄움
+            const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
+            const phone = formatPhone(rec.phone || '');
+            const name = String(rec.name || '').trim();
             
             let initialHistory = [];
             if (rec.consultationContent) {
                 initialHistory.push({
-                    date: dateInfo.cleanText !== '-' ? dateInfo.cleanText : '날짜 미상',
+                    date: rawDateStr !== '-' ? rawDateStr : '날짜 미상',
                     author: rec.firstCounselor || '시스템',
                     content: rec.consultationContent
                 });
             }
 
+            // '대기' 강제 기본값 삭제
+            const status = rec.contractStatus ? rec.contractStatus.trim() : '';
+
             return {
                 id: rec.id || `r-${idx}`,
                 name: name || phone || '-',
                 phone: phone,
-                contractStatus: rec.contractStatus || rec.계약여부 || '대기',
+                contractStatus: status,
                 showCrmBadge: Boolean(rec.isNew || rec['신규등록'] || rec['CRM등록']),
-                firstCounselor: rec.firstCounselor || rec['1차상담자'] || '-',
-                secondCounselor: rec.secondCounselor || rec['2차상담자'] || rec['2차 상담자'] || '-',
-                firstGuideAmount: rec.firstGuideAmount || rec['1차안내금액'] || rec['안내 금액'] || '-',
-                dbEntryDateRaw: dateInfo.cleanText, 
-                yearToken: rec.sheetYear || dateInfo.year,
-                monthToken: rec.sheetMonth || dateInfo.month,
-                suspect: rec.suspect || rec.혐의 || '',
-                path: rec.path || rec['경로'] || '',
+                firstCounselor: rec.firstCounselor || '-',
+                secondCounselor: rec.secondCounselor || '-',
+                firstGuideAmount: rec.firstGuideAmount || '-',
+                dbEntryDateRaw: rawDateStr, 
+                yearToken: rec.sheetYear || 2026,
+                monthToken: rec.sheetMonth || null,
+                suspect: rec.suspect || '',
+                path: rec.path || '',
                 consultationHistory: initialHistory 
             };
         }
@@ -491,11 +469,12 @@
                 item.dataset.index = String(globalIdx);
 
                 const crmBadgeHtml = record.showCrmBadge ? '<span class="text-[10px] px-1.5 py-0.5 bg-[#4e56ab] text-white rounded font-bold mr-1">CRM등록</span>' : '';
+                const statusBadge = record.contractStatus ? `<span class="text-[11px] px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span>` : '';
 
                 item.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-bold text-lg font-headline">${record.name}</span>
-                        <div>${crmBadgeHtml}<span class="text-[11px] px-2 py-0.5 bg-surface-container-high rounded uppercase font-bold">${record.contractStatus}</span></div>
+                        <div>${crmBadgeHtml}${statusBadge}</div>
                     </div>
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-on-surface-variant font-body">${record.phone}</span>
