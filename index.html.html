@@ -16,6 +16,9 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #b9c7df; }
+        
+        /* 모바일 최적화를 위해 로딩 스피너 부드러운 전환 추가 */
+        .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
     </style>
 <script id="tailwind-config">
         tailwind.config = {
@@ -66,44 +69,44 @@
 <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-50 hidden lg:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
 
 <div class="ml-0 lg:ml-64 h-screen flex flex-col overflow-hidden transition-all duration-300">
-<header class="shrink-0 flex flex-col lg:flex-row justify-between items-start lg:items-center p-4 lg:px-8 lg:h-16 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm gap-4 overflow-x-hidden">
-<div class="flex items-center gap-3 w-full lg:w-auto flex-1">
-<button class="lg:hidden material-symbols-outlined p-1.5 rounded-md hover:bg-surface-container-highest text-primary-container bg-surface transition-colors" onclick="toggleSidebar()">menu</button>
-<div class="relative w-full max-w-sm flex-1">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
-<input id="search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
+<header class="shrink-0 flex flex-col lg:flex-row justify-between items-start lg:items-center p-4 lg:px-8 lg:h-16 z-40 bg-[#ffffff]/80 backdrop-blur-md shadow-sm gap-3 lg:gap-6 overflow-x-hidden">
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4 w-full lg:w-auto flex-1">
+    <div class="flex items-center gap-3 w-full lg:w-auto lg:max-w-sm flex-1">
+        <button class="lg:hidden material-symbols-outlined p-1.5 rounded-md hover:bg-surface-container-highest text-primary-container bg-surface transition-colors" onclick="toggleSidebar()">menu</button>
+        <div class="relative w-full flex-1">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline scale-90">search</span>
+            <input id="search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm font-body focus:ring-1 focus:ring-primary-container" placeholder="고객명, 연락처 검색..." type="text"/>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 text-sm font-bold font-body text-[#353e91] shrink-0 w-full sm:w-auto px-1 sm:px-0">
+        <select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer pr-8 py-1">
+            <option value="all">전체 연도</option>
+            <option value="2026">2026년</option>
+            <option value="2025">2025년</option>
+        </select>
+        <select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm focus:ring-0 cursor-pointer pr-8 py-1">
+            <option value="all">전체 월</option>
+            <option value="1">1월</option> <option value="2">2월</option> <option value="3">3월</option>
+            <option value="4">4월</option> <option value="5">5월</option> <option value="6">6월</option>
+            <option value="7">7월</option> <option value="8">8월</option> <option value="9">9월</option>
+            <option value="10">10월</option> <option value="11">11월</option> <option value="12">12월</option>
+        </select>
+    </div>
 </div>
-</div>
-<div class="flex flex-row items-center justify-between w-full lg:w-auto gap-2 lg:gap-4 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide">
-<div class="flex items-center gap-1.5 lg:gap-2 text-sm font-bold font-body text-[#353e91] shrink-0">
-<select id="filter-year-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm lg:text-sm focus:ring-0 cursor-pointer appearance-none pr-5 py-1">
-<option value="all">전체 연도</option>
-<option value="2026">2026년</option>
-<option value="2025">2025년</option>
-</select>
-<select id="filter-month-select" class="bg-transparent border-none text-[#353e91] font-bold text-sm lg:text-sm focus:ring-0 cursor-pointer appearance-none pr-5 py-1">
-<option value="all">전체 월</option>
-<option value="1">1월</option> <option value="2">2월</option> <option value="3">3월</option>
-<option value="4">4월</option> <option value="5">5월</option> <option value="6">6월</option>
-<option value="7">7월</option> <option value="8">8월</option> <option value="9">9월</option>
-<option value="10">10월</option> <option value="11">11월</option> <option value="12">12월</option>
-</select>
-</div>
-<div class="flex items-center gap-1.5 lg:gap-3 shrink-0">
-<button id="filter-crm-btn" class="px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">CRM등록 모아보기</button>
-<button id="filter-focus-btn" class="px-3 lg:px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">집중관리</button>
-</div>
+<div class="flex items-center gap-2 lg:gap-3 shrink-0 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-hide">
+<button id="filter-crm-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">CRM등록 모아보기</button>
+<button id="filter-focus-btn" class="px-4 py-1.5 bg-surface-container-highest text-[#353e91] text-xs lg:text-sm font-bold rounded-full hover:bg-surface-variant transition-all font-headline whitespace-nowrap">집중관리</button>
 </div>
 </header>
 
-<main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+<main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
 <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 데이터를 불러오고 있습니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">데이터를 불러오고 동기화하는 중입니다...</p>
 </div>
 
-<section class="w-full lg:w-[400px] h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0 min-h-0">
-<div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/50 backdrop-blur-sm z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none lg:bg-transparent">
+<section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
+<div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/80 lg:bg-transparent backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none">
 <div class="flex justify-between items-center mb-2 lg:mb-4">
 <h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <div class="flex items-center gap-2">
@@ -123,10 +126,10 @@
 </div>
 </section>
 
-<section id="detail-section" class="flex-1 bg-surface flex flex-col h-[60vh] lg:h-full overflow-hidden">
+<section id="detail-section" class="flex-1 bg-surface flex flex-col min-h-[700px] lg:min-h-0 lg:h-full overflow-visible lg:overflow-hidden relative">
 <div class="p-5 lg:p-8 pb-2 lg:pb-4 shrink-0">
-<div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-4 lg:mb-8 gap-4">
-<div class="w-full lg:w-auto">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 lg:mb-8 gap-4 relative z-10">
+<div class="w-full sm:w-auto">
 <h2 id="detail-title" class="text-2xl lg:text-4xl font-black font-headline text-primary-container mb-2 lg:mb-1 truncate w-full">고객 상세</h2>
 <span class="flex items-center gap-3 text-base lg:text-lg font-bold text-on-surface">
     <span id="detail-phone-text">-</span>
@@ -135,11 +138,12 @@
     </a>
 </span>
 </div>
-<div class="flex gap-2 w-full lg:w-auto">
-<button id="btn-edit-prospect" class="flex-1 lg:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline shadow-sm">수정하기</button>
-<button id="btn-take-case" class="flex-1 lg:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline hover:scale-[1.02] active:scale-95 transition-all">사건 수임</button>
+<div class="flex gap-2 w-full sm:w-auto z-20">
+<button id="btn-edit-prospect" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline shadow-sm cursor-pointer relative z-20">수정하기</button>
+<button id="btn-take-case" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline hover:scale-[1.02] active:scale-95 transition-all cursor-pointer relative z-20">사건 수임</button>
 </div>
 </div>
+
 <div class="overflow-x-auto rounded-xl border border-outline-variant/10 shadow-sm w-full bg-white">
 <table class="w-full text-left border-collapse font-body min-w-[500px]">
 <thead class="bg-surface-container-low">
@@ -161,17 +165,17 @@
 </table>
 </div>
 </div>
-<div class="flex-1 overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
+<div class="flex-1 overflow-y-visible lg:overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
 <h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
 <div id="history-container" class="relative pl-6 lg:pl-8 space-y-5 lg:space-y-6 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
 </div>
 </div>
 
-<div class="p-4 lg:p-8 bg-white border-t border-outline-variant/10 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:shadow-none z-20">
+<div class="p-4 lg:p-8 bg-white border-t border-outline-variant/10 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:shadow-none z-20 mt-auto">
     <div class="flex flex-col gap-3 lg:gap-4">
         <textarea id="note-content" class="w-full p-3 lg:p-4 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-1 focus:ring-primary-container min-h-[80px] lg:min-h-[100px] resize-none" placeholder="새로운 상담 내용을 입력하세요..."></textarea>
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-6">
-            <div class="flex gap-3 w-full lg:flex-1">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-6">
+            <div class="flex gap-3 w-full sm:flex-1">
                 <div class="flex-1">
                     <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
                     <div class="relative">
@@ -181,14 +185,14 @@
                 </div>
                 <div class="flex-1">
                     <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
-                    <select id="bottom-status-select" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body">
+                    <select id="bottom-status-select" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body pr-8">
                         <option value="">상태 없음</option>
                         <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
                     </select>
                 </div>
             </div>
-            <div class="w-full lg:w-auto mt-1 lg:mt-0 flex items-end">
-                <button id="btn-add-note" class="w-full lg:w-auto px-8 py-2.5 lg:py-3 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline text-sm lg:text-base">노트 등록</button>
+            <div class="w-full sm:w-auto mt-1 sm:mt-0 flex items-end">
+                <button id="btn-add-note" class="w-full sm:w-auto px-8 py-2.5 lg:py-3 bg-primary-container text-white font-black rounded-lg shadow-md hover:translate-y-[-1px] transition-all active:scale-95 font-headline text-sm lg:text-base cursor-pointer">노트 등록</button>
             </div>
         </div>
     </div>
@@ -226,13 +230,13 @@
 </div>
 <div class="space-y-1">
 <label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">1차 상담자</label>
-<select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8">
 <option>원진혁</option><option>홍준기</option><option>이지은</option><option>직접입력</option>
 </select>
 </div>
 <div class="space-y-1">
 <label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
-<select id="new-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<select id="new-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8">
     <option value="">선택 안함</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
@@ -242,8 +246,8 @@
 <textarea id="new-memo" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 min-h-[100px] resize-none" placeholder="상담 내용을 입력하세요"></textarea>
 </div>
 <div class="pt-2 flex justify-end gap-3">
-<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
-<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm" type="submit">등록 완료</button>
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm cursor-pointer" onclick="document.getElementById('new-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm cursor-pointer" type="submit">등록 완료</button>
 </div>
 </form>
 </div>
@@ -292,21 +296,20 @@
 </div>
 <div class="space-y-1">
 <label class="text-[12px] lg:text-[14px] font-black text-on-surface uppercase tracking-wider ml-1 font-body">계약 여부</label>
-<select id="edit-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none">
+<select id="edit-status" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8">
     <option value="">상태 없음</option>
     <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
 </select>
 </div>
 <div class="pt-2 flex justify-end gap-3">
-<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
-<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm" type="submit">수정 완료</button>
+<button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm cursor-pointer" onclick="document.getElementById('edit-customer-modal').classList.add('hidden')" type="button">취소</button>
+<button class="py-2.5 px-6 bg-primary-container text-white font-headline font-bold rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-95 transition-all text-sm cursor-pointer" type="submit">수정 완료</button>
 </div>
 </form>
 </div>
 </div>
 
 <script>
-    // 모바일 사이드바 토글 전역 함수
     window.toggleSidebar = function() {
         const sidebar = document.getElementById('mobile-sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -315,8 +318,12 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [반드시 교체!] 지은 님이 방금 구글 시트에서 '새 배포' 후 얻은 URL을 넣어주세요!
+        // [백엔드 연동 주소] 지은님의 가장 최신 배포 URL을 유지합니다.
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz_srLURhzcBbi09BQdoCyocSDj5r52vO6Fw685dKQSjCIMbHIFjjrh1LFq87647g-C/exec';
+        
+        // [핵심] 캐싱 시스템 도입 (30초 로딩 박멸)
+        const CACHE_KEY = 'crm_data_v1';
+        let isEventsBound = false;
         
         const state = {
             allRecords: [],
@@ -500,7 +507,7 @@
             renderPagination(state.filteredRecords.length);
         }
 
-        // [핵심 해결] 토글 버튼 색상 전환 클래스 재설정
+        // 필터 및 토글 버튼 색상 전환 로직 
         function updateToggleUI() {
             document.getElementById('filter-crm-btn').className = state.crmOnly 
                 ? 'px-3 lg:px-4 py-1.5 bg-primary-container text-white text-xs lg:text-sm font-bold rounded-full transition-all font-headline whitespace-nowrap shadow-md' 
@@ -532,7 +539,19 @@
                 state.filteredRecords.reverse(); 
             }
             
-            updateToggleUI(); // 필터 적용 시 토글 버튼 UI 즉시 갱신
+            updateToggleUI(); 
+        }
+
+        function updateUIWithData(payload) {
+            state.allRecords = (payload.records || []).map(normalizeRecord);
+            applyFilters(); renderList(); 
+            
+            if(state.filteredRecords.length > 0) {
+                const currentRec = state.filteredRecords[state.selectedIndex];
+                renderDetail(currentRec || state.filteredRecords[0]);
+            } else {
+                renderDetail(null);
+            }
         }
 
         function bindEvents() {
@@ -546,7 +565,6 @@
             document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
-            // 토글 버튼 누를 때마다 상태 변경
             document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); });
             
@@ -689,20 +707,49 @@
             if(dateInput) dateInput.value = today;
         }
 
-        try {
-            const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
-            const res = await fetch(url, { method: 'GET' });
-            const payload = await res.json();
-            
-            state.allRecords = (payload.records || []).map(normalizeRecord);
-            state.currentPage = 1; state.selectedIndex = 0;
-            applyFilters(); renderList(); renderDetail(state.filteredRecords[0]); bindEvents();
-        } catch (err) { 
-            console.error(err); 
-        } finally {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+        // [핵심] 백그라운드 데이터 동기화 함수
+        async function fetchAndSyncData(isBackground = false) {
+            try {
+                if (!isBackground) document.getElementById('loading-overlay').classList.remove('hidden');
+                
+                const url = `${GAS_WEBAPP_URL}?action=prospects&today=2026-03-24`;
+                const res = await fetch(url);
+                const payload = await res.json();
+                
+                // 캐시에 최신 데이터 저장
+                localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+                updateUIWithData(payload);
+                
+                if (!isEventsBound) {
+                    bindEvents();
+                    isEventsBound = true;
+                }
+            } catch (err) {
+                console.error('데이터 동기화 실패:', err);
+            } finally {
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.add('fade-out');
+            }
+        }
+
+        // 실행: 캐시 확인 후 즉각 렌더링 or 최초 로딩
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            try {
+                const payload = JSON.parse(cachedData);
+                updateUIWithData(payload);
+                document.getElementById('loading-overlay').classList.add('hidden');
+                bindEvents();
+                isEventsBound = true;
+                
+                // 뒤에서 몰래 최신 데이터 긁어오기 (화면은 이미 0.1초만에 켜져있음)
+                fetchAndSyncData(true);
+            } catch(e) {
+                fetchAndSyncData(false);
+            }
+        } else {
+            // 첫 접속 시에는 어쩔 수 없이 30초 풀 로딩
+            fetchAndSyncData(false);
         }
     })();
 </script>
