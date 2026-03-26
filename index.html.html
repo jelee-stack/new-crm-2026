@@ -317,13 +317,12 @@
 
     (async function initProspectsFromGAS() {
         // [필수!!] 여기에 지은 님의 웹 앱 주소를 꼭 넣어주세요!
-        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyRpMvWhiSSgFcWLHbFTD5rnn9hkbUPTNfLCgHUXK8qwQwjHfCEhhqFOrsWWubRIzWb/exec';
+        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyMq8UmtxEGfdMk8jJ8ScbVik2PuJwmWWCGKMCqstj4qf9Y3ECAeJ00QDbSYLIAHXO9/exec';
         
-        // [핵심 해결 3] 글로벌 캐시 키 설정
-        const CACHE_KEY = 'crm_global_data_v1';
+        // 캐시 데이터가 꼬인 것을 강제로 파기하기 위해 v3로 올렸습니다.
+        const CACHE_KEY = 'crm_global_data_v3';
         let isEventsBound = false;
 
-        // [핵심 해결 2] 초기 진입 시 자동으로 현재 연도/월 잡아주기
         const today = new Date();
         const currentYear = String(today.getFullYear());
         const currentMonth = String(today.getMonth() + 1);
@@ -332,8 +331,8 @@
             allRecords: [],
             filteredRecords: [],
             selectedIndex: 0,
-            selectedYear: currentYear,  // 컴퓨터 현재 시간 반영!
-            selectedMonth: currentMonth, // 컴퓨터 현재 시간 반영!
+            selectedYear: currentYear,  
+            selectedMonth: currentMonth, 
             crmOnly: false,
             focusOnly: false,
             searchQuery: '', 
@@ -342,7 +341,6 @@
             sortOrder: 'desc'
         };
 
-        // DOM이 그려질 때 필터 드롭다운에도 현재 연도/월 값 세팅해주기
         const yrEl = document.getElementById('filter-year-select');
         if(yrEl) {
             const optionExists = Array.from(yrEl.options).some(opt => opt.value === state.selectedYear);
@@ -718,12 +716,14 @@
                 renderList(); renderDetail(state.filteredRecords[state.selectedIndex]);
             });
             
-            const today = new Date().toISOString().split('T')[0];
             const dateInput = document.getElementById('today-date');
-            if(dateInput) dateInput.value = today;
+            if(dateInput) {
+                // 현재 시간을 YYYY-MM-DD 형태로 포맷팅
+                const d = new Date();
+                dateInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            }
         }
 
-        // [핵심 해결 3] 0.1초 캐시 로딩 복구 완료!!
         async function fetchAndSyncData(isBackground = false) {
             try {
                 if (!isBackground) document.getElementById('loading-overlay').classList.remove('hidden');
@@ -732,7 +732,7 @@
                 const res = await fetch(url);
                 const payload = await res.json();
                 
-                // 캐시에 최신 데이터 몰래 저장
+                // 데이터 캐시에 저장
                 localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
                 updateUIWithData(payload);
                 
@@ -745,10 +745,11 @@
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
 
-        // 실행: 캐시 확인 후 0.1초 만에 화면 띄우기
+        // 캐시 로직: 데이터가 있으면 바로 보여주고 뒤에서 새로고침
         const cachedData = localStorage.getItem(CACHE_KEY);
         if (cachedData) {
             try {
@@ -758,13 +759,11 @@
                 bindEvents();
                 isEventsBound = true;
                 
-                // 화면이 뜬 상태에서 조용히 뒷단에서 최신 데이터 가져오기
                 fetchAndSyncData(true);
             } catch(e) {
                 fetchAndSyncData(false);
             }
         } else {
-            // 맨 처음 접속 시에만 기다림
             fetchAndSyncData(false);
         }
     })();
