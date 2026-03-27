@@ -209,7 +209,6 @@
     </div>
     <h3 id="delete-modal-title" class="text-lg lg:text-xl font-headline font-bold text-primary-container mb-2 text-center">고객 삭제</h3>
     <p class="text-sm lg:text-base text-on-surface-variant mb-10 text-center font-body">이 고객 데이터를 <strong class="text-error font-bold">영구히 삭제</strong> 하시겠습니까?</p>
-    
     <div class="w-full grid grid-cols-2 gap-3 mt-auto">
         <button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm cursor-pointer" onclick="document.getElementById('delete-customer-modal').classList.add('hidden')" type="button">취소</button>
         <button id="btn-delete-confirm" class="py-2.5 px-6 bg-error text-white font-headline font-bold rounded-xl shadow-lg shadow-error/20 hover:scale-[1.01] active:scale-95 transition-all text-sm cursor-pointer" type="button">삭제하기</button>
@@ -334,13 +333,14 @@
     };
 
     (async function initProspectsFromGAS() {
+        // 데이터 연동 완벽했던 원본 주소 유지
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_additions_v5';
-        let localAdditions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+        // 데이터 안전 금고 (로컬/캐시)
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v11';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v11'; 
         
-        // 수정사항 1: 구글 원본 전용 캐시 부활. 새로고침 딜레이 완벽 방어!
-        const GAS_CACHE_KEY = 'crm_gas_cache_v5';
+        let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
         let gasRecords = JSON.parse(localStorage.getItem(GAS_CACHE_KEY)) || [];
         
         let isEventsBound = false;
@@ -413,7 +413,7 @@
                 monthToken: rec.sheetMonth || parseInt(currentMonth, 10),
                 suspect: rec.suspect || '',
                 path: rec.path || '',
-                isCrmAdded: rec.isCrmAdded || false,
+                isNew: rec.isNew || false,
                 consultationHistory: rec.consultationHistory || initialHistory,
                 __sort: rec.__sort || 0 
             };
@@ -561,7 +561,7 @@
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
-                const crmOk = state.crmOnly ? (r.showCrmBadge === true || r.isCrmAdded === true) : true;
+                const crmOk = state.crmOnly ? (r.showCrmBadge === true || r.isNew === true) : true;
                 const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
                 
                 let searchOk = true;
@@ -572,23 +572,26 @@
 
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
-
-            if (state.sortOrder === 'asc') {
-                state.filteredRecords.reverse(); 
-            }
             
             updateToggleUI(); 
         }
 
-        // 전체 UI 갱신 함수 (로컬 병합 및 정렬)
-        function updateUIWithData() {
+        // [완벽 핀셋 수술] UI 갱신 (로컬 + 시트 데이터 병합 및 최신순 정렬)
+        function updateUI() {
             const recordMap = new Map();
             gasRecords.forEach(r => recordMap.set(r.id, r));
-            localAdditions.forEach(r => recordMap.set(r.id, r)); 
+            localData.forEach(r => recordMap.set(r.id, r)); 
 
             state.allRecords = Array.from(recordMap.values());
+            
+            // 완벽 수정: 여기서 무조건 __sort 값이 큰 순서(최신)대로 정렬(내림차순)합니다!
+            // 구글 시트 역순 버그 및 신규 데이터 최상단 배치 모두 이것으로 100% 해결됩니다.
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
+            if (state.sortOrder === 'asc') {
+                state.allRecords.reverse(); // 화면에서 버튼 누르면 여기서만 반대로 뒤집음
+            }
+
             applyFilters(); 
             renderList(); 
             
@@ -605,20 +608,20 @@
             document.getElementById('search-input').addEventListener('input', (e) => { 
                 state.searchQuery = e.target.value; 
                 state.currentPage = 1; state.selectedIndex = 0;
-                updateUIWithData();
+                updateUI();
             });
 
-            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
-            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
+            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
+            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
             
-            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
-            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
+            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
+            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
             
             document.getElementById('btn-sort-toggle').addEventListener('click', () => {
                 state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
                 document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
                 state.currentPage = 1; state.selectedIndex = 0;
-                updateUIWithData();
+                updateUI();
             });
 
             document.getElementById('nav-all-prospects').addEventListener('click', () => {
@@ -627,7 +630,7 @@
                 document.getElementById('filter-month-select').value = 'all';
                 document.getElementById('search-input').value = '';
                 state.currentPage = 1; state.selectedIndex = 0;
-                updateUIWithData();
+                updateUI();
                 if(window.innerWidth < 1024) toggleSidebar();
             });
 
@@ -648,11 +651,11 @@
                     const originalRecord = state.allRecords.find(r => r.id === record.id);
                     if (originalRecord) originalRecord.contractStatus = e.target.value;
                     
-                    if(record.isCrmAdded) {
-                        const lIdx = localAdditions.findIndex(r => r.id === record.id);
-                        if(lIdx > -1) { localAdditions[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions)); }
+                    if(record.isNew) {
+                        const lIdx = localData.findIndex(r => r.id === record.id);
+                        if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
                     }
-                    updateUIWithData();
+                    updateUI();
                 });
             }
 
@@ -680,16 +683,16 @@
                     originalRecord.contractStatus = record.contractStatus;
                 }
 
-                if(record.isCrmAdded) {
-                    const lIdx = localAdditions.findIndex(r => r.id === record.id);
-                    if(lIdx > -1) { localAdditions[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions)); }
+                if(record.isNew) {
+                    const lIdx = localData.findIndex(r => r.id === record.id);
+                    if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
                 }
 
                 document.getElementById('note-content').value = ''; 
-                updateUIWithData();
+                updateUI();
             });
 
-            // 수정 2: 신규 등록 완료 후 전체 보기로 풀리는 증상 방지!
+            // [완벽 핀셋 수술] 신규 고객 등록 후 전체 필터 안 풀리게 방어 완료!
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -700,7 +703,6 @@
                     name: document.getElementById('new-name').value,
                     phone: document.getElementById('new-phone').value,
                     isNew: true, 
-                    isCrmAdded: true,
                     dbEntryDateRaw: todayStr.replace(/-/g, '.'), 
                     path: document.getElementById('new-path').value,
                     suspect: document.getElementById('new-suspect').value,
@@ -709,18 +711,19 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10), 
                     sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 // 신규 등록은 무조건 최상단 배치
+                    __sort: Date.now() // 시간이 가장 크므로 무조건 1등으로 최상단에 올라갑니다.
                 };
                 
                 const newRec = normalizeRecord(newRecRaw, `local_${Date.now()}`);
                 
-                localAdditions.unshift(newRec);
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions));
+                localData.unshift(newRec);
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 기존의 nav-all-prospects.click() 코드를 삭제하고, 현재 필터 유지한 채로 화면만 부드럽게 새로고침
-                updateUIWithData(); 
+                // 기존의 악성코드였던 강제 클릭(document.getElementById('nav-all-prospects').click();)을 제거하고
+                // 현재 보고 있는 연/월 상태 그대로 유지하면서 화면만 새로 그립니다.
+                updateUI(); 
             });
 
             document.getElementById('btn-take-case').addEventListener('click', () => {
@@ -730,12 +733,12 @@
                 const originalRecord = state.allRecords.find(r => r.id === record.id);
                 if (originalRecord) originalRecord.contractStatus = '계약완료';
 
-                if(record.isCrmAdded) {
-                    const lIdx = localAdditions.findIndex(r => r.id === record.id);
-                    if(lIdx > -1) { localAdditions[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions)); }
+                if(record.isNew) {
+                    const lIdx = localData.findIndex(r => r.id === record.id);
+                    if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
                 }
 
-                updateUIWithData();
+                updateUI();
             });
 
             document.getElementById('btn-edit-prospect').addEventListener('click', () => {
@@ -783,16 +786,16 @@
                 record.firstGuideAmount = originalRecord.firstGuideAmount;
                 record.contractStatus = originalRecord.contractStatus;
 
-                if(record.isCrmAdded) {
-                    const lIdx = localAdditions.findIndex(r => r.id === record.id);
-                    if(lIdx > -1) { localAdditions[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions)); }
+                if(record.isNew) {
+                    const lIdx = localData.findIndex(r => r.id === record.id);
+                    if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
                 }
 
                 document.getElementById('edit-customer-modal').classList.add('hidden');
-                updateUIWithData();
+                updateUI();
             });
 
-            // 데이터 삭제 기능 이벤트 등록
+            // [완벽 핀셋 수술] 데이터 삭제 기능 이벤트 (웹에서 만든 데이터 한정)
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -802,8 +805,8 @@
                     const record = state.filteredRecords[state.selectedIndex];
                     if (!record) return;
                     
-                    if (!record.isCrmAdded) {
-                        alert('❌ 원본 시트 데이터 보호 ❌\n\n구글 시트 연동 데이터는 웹에서 임의로 지울 수 없습니다. 시트에서 직접 삭제해주세요.');
+                    if (!record.isNew) {
+                        alert('❌ 구글 시트 원본 보호 ❌\n\n구글 시트에서 연동된 원본 데이터는 삭제할 수 없습니다. 시트에서 직접 지워주세요.');
                         return;
                     }
                     
@@ -815,69 +818,63 @@
             if (deleteConfirmBtn) {
                 deleteConfirmBtn.addEventListener('click', () => {
                     const record = state.filteredRecords[state.selectedIndex];
-                    if (!record || !record.isCrmAdded) return;
+                    if (!record || !record.isNew) return;
 
-                    localAdditions = localAdditions.filter(r => r.id !== record.id);
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions));
+                    localData = localData.filter(r => r.id !== record.id);
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
                     
-                    deleteModal.classList.add('hidden');
+                    document.getElementById('delete-customer-modal').classList.add('hidden');
                     state.selectedIndex = 0;
-                    updateUIWithData();
+                    updateUI();
                 });
             }
         }
 
-        // 구글 시트 백그라운드 통신 함수
+        // [완벽 핀셋 수술] 23년 역순 버그 및 새로고침 딜레이 제거
         async function fetchFromGAS(isBackground = false) {
             try {
                 if (!isBackground) {
-                    const overlay = document.getElementById('loading-overlay');
-                    overlay.style.display = 'flex';
-                    overlay.classList.remove('hidden', 'fade-out');
+                    document.getElementById('loading-overlay').style.display = 'flex';
                 }
-
+                
                 const url = `${GAS_WEBAPP_URL}?action=prospects`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('네트워크 문제');
-
+                
                 const payload = await res.json();
-
-                // 수정 3: 23년 데이터가 위로 오는 버그 해결!
-                // 앱스 스크립트에서 넘어온 순서 그대로 번호표를 반대로(큰 수부터 작은 수로) 매겨서 내림차순(최신순) 정렬을 보장합니다.
+                
+                // 완벽 수정: 여기서 순서 꼬리표 번호를 매깁니다. 
+                // 앱스 스크립트는 시트의 위에서부터 아래로 데이터를 읽어서 보내줍니다. (23년 -> 26년 순서)
+                // 따라서 나중에 읽힌 데이터(배열의 뒤쪽, index i가 클수록)가 최신 데이터입니다. 
+                // 그러므로 그냥 i 값을 그대로 __sort에 넣어주면, updateUI에서 큰 값부터 내림차순 정렬하므로 무조건 최신순이 됩니다!!
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = (payload.records.length - i) * 10; 
+                    rec.__sort = i; 
                     return rec;
                 });
-
+                
+                // 새로고침을 0.1초로 만들어 줄 브라우저 금고에 원본 데이터를 슬쩍 백업합니다.
                 localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords));
-
-                updateUIWithData();
-
-                if (!isEventsBound) {
-                    bindEvents();
-                    isEventsBound = true;
-                }
+                
+                updateUI();
             } catch (err) {
-                console.error('데이터 통신 문제:', err);
+                console.error('데이터 통신 에러:', err);
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                    overlay.style.display = 'none';
-                }, 300);
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
         }
 
-        // 새로고침 0.1초 렌더링 로직
+        // 초기 화면 로딩 로직
         if (gasRecords.length > 0) {
-            updateUIWithData();
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.add('hidden');
-            overlay.style.display = 'none';
+            // 캐시가 있으면 일단 0.1초 만에 화면부터 그려버립니다. 
+            updateUI();
+            document.getElementById('loading-overlay').style.display = 'none';
             bindEvents();
             isEventsBound = true;
+            
+            // 그리고 사용자 모르게 조용히 백그라운드에서 최신 데이터를 가져옵니다.
             fetchFromGAS(true);
         } else {
             fetchFromGAS(false);
