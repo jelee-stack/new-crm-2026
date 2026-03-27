@@ -100,9 +100,9 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+<div id="loading-overlay" class="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 원본을 가져오는 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -131,9 +131,9 @@
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 lg:mb-8 gap-4 relative z-10">
 <div class="w-full sm:w-auto">
 <h2 id="detail-title" class="text-lg lg:text-xl font-bold font-headline text-primary-container mb-2 lg:mb-1 truncate w-full">고객 상세</h2>
-<span class="flex items-center gap-3 text-base lg:text-lg font-bold text-on-surface">
+<span class="flex items-center gap-3 text-sm lg:text-base font-medium text-on-surface">
     <span id="detail-phone-text">-</span>
-    <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
+    <a id="detail-phone-link" class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
         <span class="material-symbols-outlined text-lg lg:text-xl">call</span>
     </a>
 </span>
@@ -149,25 +149,25 @@
 <table class="w-full text-left border-collapse font-body min-w-[500px]">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">DB 유입 날짜</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">1차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">2차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">안내 금액</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">DB 유입 날짜</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">1차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">2차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
 <tr class="border-b border-outline-variant/5">
-<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-sm lg:text-base text-on-surface whitespace-nowrap">-</td>
-<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-sm lg:text-base text-primary-container whitespace-nowrap">-</td>
+<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-xs lg:text-sm text-on-surface whitespace-nowrap">-</td>
+<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-xs lg:text-sm text-primary-container whitespace-nowrap">-</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="flex-1 overflow-y-visible lg:overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
-<h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
+<h3 class="text-[10px] lg:text-[11px] font-black text-outline uppercase tracking-wider mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10 font-headline">상담 히스토리</h3>
 <div id="history-container" class="relative pl-6 lg:pl-8 space-y-5 lg:space-y-6 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
 </div>
 </div>
@@ -178,14 +178,14 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-6">
             <div class="flex gap-3 w-full sm:flex-1">
                 <div class="flex-1">
-                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
                     <div class="relative">
                         <input id="note-date" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
                         <span class="material-symbols-outlined absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-base lg:text-lg">calendar_month</span>
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
                     <select id="bottom-status-select" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body pr-8">
                         <option value="">상태 없음</option>
                         <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
@@ -334,14 +334,15 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [필수!!] 여기에 지은 님의 '모든 사용자 권한 배포' 웹 앱 주소를 꼭 넣어주세요!
-        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
+        // [필수!!] 여기에 지은 님의 웹 앱 주소를 꼭 넣어주세요!
+        const GAS_WEBAPP_URL = '지은님의_새로운_웹앱_주소를_여기에_넣어주세요';
         
-        // 브라우저 금고 키
-        const LOCAL_STORAGE_KEY = 'crm_local_additions_v5';
+        const LOCAL_ADDITIONS_KEY = 'crm_local_additions_v7';
+        // [핵심 복구] 구글 시트 원본 데이터를 브라우저에 임시 저장하는 금고 부활!
+        const GAS_CACHE_KEY = 'crm_gas_cache_v7'; 
         
-        let localAdditions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-        let gasRecords = []; 
+        let localAdditions = JSON.parse(localStorage.getItem(LOCAL_ADDITIONS_KEY)) || [];
+        let gasRecords = JSON.parse(localStorage.getItem(GAS_CACHE_KEY)) || []; 
         let isEventsBound = false;
 
         const today = new Date();
@@ -414,7 +415,7 @@
                 path: rec.path || '',
                 isCrmAdded: rec.isCrmAdded || false, 
                 consultationHistory: rec.consultationHistory || initialHistory,
-                __sort: rec.__sort || 0 // 정렬 순서 기본값
+                __sort: rec.__sort || 0 
             };
         }
 
@@ -560,7 +561,6 @@
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
-                // CRM 모아보기에 로컬 신규 등록건 표시
                 const crmOk = state.crmOnly ? (r.showCrmBadge === true || r.isCrmAdded === true) : true;
                 const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
                 
@@ -573,7 +573,6 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 요청 1: 기본이 desc이므로 항상 최신순(시트 마지막 줄 및 신규등록)으로 보임
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -581,16 +580,13 @@
             updateToggleUI(); 
         }
 
-        // [핵심] 로컬 데이터와 구글 시트 데이터를 하나로 합치고, UI를 즉시 다시 그리는 마법의 함수
         function updateUIWithData() {
-            // 구글 시트 데이터를 맵에 넣고, 로컬 수정본으로 덮어씌움 (완벽한 로컬 오버라이드)
             const recordMap = new Map();
             gasRecords.forEach(r => recordMap.set(r.id, r));
             localAdditions.forEach(r => recordMap.set(r.id, r)); 
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 모든 데이터(로컬 + 시트)를 최신순으로 완벽 정렬
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -606,7 +602,7 @@
         }
 
         function saveLocalAdditions() {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localAdditions));
+            localStorage.setItem(LOCAL_ADDITIONS_KEY, JSON.stringify(localAdditions));
         }
 
         function bindEvents() {
@@ -648,7 +644,6 @@
                 renderDetail(state.filteredRecords[state.selectedIndex]);
             });
 
-            // 상태 변경 로컬 저장
             const bottomStatusSelect = document.getElementById('bottom-status-select');
             if (bottomStatusSelect) {
                 bottomStatusSelect.addEventListener('change', (e) => {
@@ -667,7 +662,6 @@
                 });
             }
 
-            // 노트 등록 로컬 저장
             document.getElementById('btn-add-note').addEventListener('click', () => {
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
@@ -698,14 +692,13 @@
                 updateUIWithData();
             });
 
-            // 요청 4: 신규 고객 등록 폼 처리 및 즉시 반영
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newRecRaw = {
                     name: document.getElementById('new-name').value,
                     phone: document.getElementById('new-phone').value,
                     isNew: true, 
-                    isCrmAdded: true, // CRM 전용 신규등록 데이터 라벨링
+                    isCrmAdded: true, 
                     dbEntryDateRaw: '웹등록', 
                     path: document.getElementById('new-path').value,
                     suspect: document.getElementById('new-suspect').value,
@@ -714,26 +707,22 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(currentYear, 10),
                     sheetMonth: parseInt(currentMonth, 10),
-                    __sort: Date.now() * 1000 // 신규 등록 무조건 맨 위로!
+                    __sort: Date.now() * 1000 
                 };
                 
-                // 고유 ID 생성 및 금고 저장
                 const newRecNormalized = normalizeRecord(newRecRaw, `local_${Date.now()}`);
                 localAdditions.unshift(newRecNormalized); 
                 saveLocalAdditions(); 
                 
-                // 폼 초기화 및 모달 닫기
                 document.getElementById('new-customer-form').reset();
                 const dInput = document.getElementById('today-date');
                 if(dInput) { const d = new Date(); dInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // [해결] 0.1초 만에 전체 UI 새로고침 (가망리스트, 모아보기 즉각 출현)
                 updateUIWithData();
                 document.getElementById('nav-all-prospects').click(); 
             });
 
-            // 사건 수임 로컬 저장
             document.getElementById('btn-take-case').addEventListener('click', () => {
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
@@ -793,7 +782,6 @@
                 updateUIWithData();
             });
 
-            // 요청 3: 데이터 삭제 기능 이벤트
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -803,7 +791,6 @@
                     const record = state.filteredRecords[state.selectedIndex];
                     if (!record) return;
                     
-                    // CRM 전용 신규등록 데이터가 아니면 방어!
                     if (!record.isCrmAdded) {
                         alert('❌ 구글 시트 데이터는 보호됩니다 ❌\n\n시트에서 직접 불러온 원본 데이터는 안전을 위해 웹에서 삭제할 수 없습니다. \n(웹에서 직접 신규 등록한 데이터만 삭제 가능합니다.)');
                         return;
@@ -819,7 +806,6 @@
                     const record = state.filteredRecords[state.selectedIndex];
                     if (!record || !record.isCrmAdded) return;
 
-                    // 브라우저 금고에서 고객 삭제 후 저장
                     localAdditions = localAdditions.filter(r => r.id !== record.id);
                     saveLocalAdditions();
                     
@@ -837,22 +823,27 @@
             }
         }
 
-        async function fetchFromGAS() {
+        async function fetchFromGAS(isBackground = false) {
             try {
+                if (!isBackground) {
+                    document.getElementById('loading-overlay').classList.remove('hidden');
+                }
+
                 const url = `${GAS_WEBAPP_URL}?action=prospects`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`네트워크 에러`);
                 
                 const payload = await res.json();
                 
-                // 요청 1: 구글 시트에서 넘어온 데이터를 최신순으로 정렬할 수 있게 번호 부여
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, null);
-                    rec.__sort = r.__sort || (i * 10); // 시트의 맨 밑에 있는 최신 데이터가 가장 큰 숫자를 갖도록 세팅
+                    rec.__sort = r.__sort || (i * 10); 
                     return rec;
                 });
                 
-                // 데이터 받아오면 전체 리스트 업데이트
+                // [핵심 복구] 구글 시트 데이터도 내 브라우저 금고에 완벽하게 저장합니다!!
+                localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords));
+                
                 updateUIWithData();
                 
                 if (!isEventsBound) {
@@ -861,7 +852,9 @@
                 }
             } catch (err) {
                 console.error('데이터 로딩 실패:', err);
-                alert('데이터 연동에 실패했습니다.\n앱스 스크립트 배포 시 "모든 사용자(Anyone)" 권한을 주셨는지 꼭 확인해 주세요!');
+                if (!isBackground) {
+                    alert('데이터 연동에 실패했습니다. 배포 주소 권한을 다시 한번 확인해 주세요!');
+                }
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
@@ -869,7 +862,20 @@
             }
         }
 
-        fetchFromGAS();
+        // 페이지 켜지자마자 실행되는 마법의 로딩 로직 (캐시 먼저 띄우기)
+        if (gasRecords.length > 0) {
+            // 저장된 구글 데이터가 있으면 로딩 없이 즉시 화면에 띄움!
+            updateUIWithData();
+            document.getElementById('loading-overlay').classList.add('hidden');
+            bindEvents();
+            isEventsBound = true;
+            
+            // 화면 다 띄워놓고 몰래 최신 업데이트
+            fetchFromGAS(true);
+        } else {
+            // 처음 접속 시에만 한 번 길게 로딩
+            fetchFromGAS(false);
+        }
     })();
 </script>
 </body></html>
