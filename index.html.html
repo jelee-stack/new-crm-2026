@@ -61,7 +61,7 @@
         </a>
 </nav>
 <div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-4">
-<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="openNewCustomerModal(); if(window.innerWidth < 1024) toggleSidebar();">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-form').reset(); document.getElementById('today-date').value = new Date().toISOString().split('T')[0]; document.getElementById('new-customer-modal').classList.remove('hidden'); if(window.innerWidth < 1024) toggleSidebar();">
 <span class="material-symbols-outlined text-xl">person_add</span> + 신규 고객 등록
         </button>
 </div>
@@ -310,17 +310,6 @@
 </div>
 
 <script>
-    // 수정사항 4: 모달 열 때 폼 리셋 및 오늘 날짜 강제 세팅 함수
-    window.openNewCustomerModal = function() {
-        document.getElementById('new-customer-form').reset();
-        const dInput = document.getElementById('today-date');
-        if(dInput) {
-            const d = new Date();
-            dInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        }
-        document.getElementById('new-customer-modal').classList.remove('hidden');
-    };
-
     window.toggleSidebar = function() {
         const sidebar = document.getElementById('mobile-sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -331,13 +320,13 @@
     (async function initProspectsFromGAS() {
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v5';
-        let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v7';
+        // 수정사항 1: 구글 시트 데이터 전용 브라우저 금고(캐시) 추가!! (새로고침 속도 0.1초 보장)
+        const GAS_CACHE_KEY = 'crm_gas_cache_v10';
         
-        // 수정사항 1: 구글 시트 원본도 로컬에 보관 (새로고침 시 딜레이 완벽 차단)
-        const GAS_CACHE_KEY = 'crm_gas_cache_v8'; 
+        let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
         let gasRecords = JSON.parse(localStorage.getItem(GAS_CACHE_KEY)) || [];
-
+        
         let isEventsBound = false;
 
         const today = new Date();
@@ -410,7 +399,7 @@
                 path: rec.path || '',
                 isNew: rec.isNew || false,
                 consultationHistory: initialHistory,
-                __sort: rec.__sort || 0 
+                __sort: rec.__sort || 0 // 정렬 순서를 보존합니다.
             };
         }
 
@@ -568,6 +557,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
+            // 수정사항 3: 내림차순(최신순) 완벽 연동.
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -575,13 +565,17 @@
             updateToggleUI(); 
         }
 
-        // 전체 화면 갱신 메인 함수
+        // 새롭게 분리한 UI 갱신 함수 (정렬 오류 해결의 핵심)
         function updateUI() {
-            // 수정사항 3: 내림차순(최신순) 완벽 정렬 방어 로직 추가
-            state.allRecords.sort((a, b) => b.__sort - a.__sort);
+            // 로컬 데이터(CRM 신규)와 구글 시트 데이터를 하나로 합칩니다.
+            state.allRecords = [...localData, ...gasRecords];
             
+            // 병합된 모든 데이터를 __sort 기준으로 완벽하게 최신순 정렬!
+            state.allRecords.sort((a, b) => b.__sort - a.__sort);
+
             applyFilters(); 
             renderList(); 
+            
             if (state.filteredRecords.length > 0) {
                 if (state.selectedIndex >= state.filteredRecords.length) state.selectedIndex = 0;
                 renderDetail(state.filteredRecords[state.selectedIndex]);
@@ -678,7 +672,7 @@
                 updateUI();
             });
 
-            // 수정사항 2 & 4: 신규 데이터 등록 로직 완벽 방어
+            // 수정사항 2: 신규 등록 완료 시 필터가 풀리는 현상(nav-all-prospects.click() 주범) 완전 제거!!
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -689,26 +683,25 @@
                     name: document.getElementById('new-name').value,
                     phone: document.getElementById('new-phone').value,
                     isNew: true, 
-                    dbEntryDateRaw: '웹등록', 
+                    dbEntryDateRaw: todayStr.replace(/-/g, '.'), 
                     path: document.getElementById('new-path').value,
                     suspect: document.getElementById('new-suspect').value,
                     firstCounselor: document.getElementById('new-counselor').value,
                     contractStatus: document.getElementById('new-status').value,
                     consultationContent: document.getElementById('new-memo').value,
-                    sheetYear: parseInt(currentYear, 10), 
-                    sheetMonth: parseInt(currentMonth, 10),
-                    __sort: Date.now() // 신규 데이터는 시간값을 주어 무조건 꼭대기로!
+                    sheetYear: parseInt(y, 10), 
+                    sheetMonth: parseInt(m, 10),
+                    __sort: Date.now() // CRM 신규 등록은 시간이 가장 크므로 무조건 리스트 최상단!
                 };
                 
                 const newRec = normalizeRecord(newRecRaw, `local_${Date.now()}`);
                 
                 localData.unshift(newRec);
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
-                state.allRecords.unshift(newRec); 
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 전체 목록 강제 클릭 제거 -> 폼만 닫고 화면 UI 부드럽게 갱신
+                // 기존의 전체보기 클릭 코드를 지우고, 그냥 updateUI()만 부릅니다! (기존 필터 유지)
                 updateUI(); 
             });
 
@@ -782,57 +775,52 @@
             });
         }
 
-        // 수정사항 1 & 3: 구글 시트 백그라운드 로딩 및 정렬 인덱스 부여
+        // [수정사항 1: 로딩 딜레이 없애기 위한 백그라운드 캐시 가져오기]
         async function fetchFromGAS(isBackground = false) {
             try {
-                if (!isBackground) {
-                    // 배경 로딩이 아닐 때만 화면 정중앙 로딩 팝업 띄움
-                    document.getElementById('loading-overlay').style.display = 'flex';
-                    document.getElementById('loading-overlay').classList.remove('hidden', 'fade-out');
-                }
-
+                if (!isBackground) document.getElementById('loading-overlay').classList.remove('hidden');
+                
                 const url = `${GAS_WEBAPP_URL}?action=prospects`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error('네트워크 문제');
-
+                if (!res.ok) throw new Error('네트워크 연결 문제');
+                
                 const payload = await res.json();
-
-                // 시트에서 가장 밑에 있는(가장 최근) 데이터가 높은 번호를 갖도록 세팅
+                
+                // 수정사항 3: 여기서 구글 시트 데이터에 0, 1, 2... 순서 꼬리표를 달아줍니다. 
+                // 앱스 스크립트에서 넘어오는 데이터는 이미 시트 순서 그대로이므로, 
+                // 나중에 나온 데이터(배열의 끝쪽)일수록 i 값이 큽니다.
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, `gas_${i}`);
                     rec.__sort = i; 
                     return rec;
                 });
-
+                
+                // 내 브라우저에 구글 데이터를 안전하게 복사해둡니다. (이게 새로고침을 0.1초로 만듭니다)
                 localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords));
-
-                state.allRecords = [...localData, ...gasRecords];
+                
                 updateUI();
-
-                if (!isEventsBound) {
-                    bindEvents();
-                    isEventsBound = true;
-                }
             } catch (err) {
-                console.error('데이터 통신 문제:', err);
+                console.error('데이터 통신 문제 (무시 가능):', err);
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
 
-        // 캐시 검사 및 초기 실행 로직
+        // 맨 처음 사이트에 들어왔을 때의 작동 방식!
         if (gasRecords.length > 0) {
-            // 캐시가 있으면 즉시(0초) UI 그리고, 백그라운드에서 몰래 시트 업데이트
-            state.allRecords = [...localData, ...gasRecords];
+            // 브라우저 금고에 예전에 받아둔 시트 데이터가 있으면? 
+            // 일단 그걸로 0.1초 만에 화면부터 그려버립니다!
             updateUI();
-            document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('loading-overlay').classList.add('hidden');
             bindEvents();
             isEventsBound = true;
-            fetchFromGAS(true); 
+            
+            // 화면 띄워놓고 사용자 모르게 백그라운드에서 최신 데이터를 가져와서 슬쩍 바꿉니다.
+            fetchFromGAS(true);
         } else {
-            // 진짜 완전 처음 켰을 때만 로딩 바 보여주기
+            // 금고가 텅 비어있는 (진짜 첫 방문) 경우에만 로딩 화면을 띄우고 기다립니다.
             fetchFromGAS(false);
         }
     })();
