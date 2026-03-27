@@ -61,7 +61,7 @@
         </a>
 </nav>
 <div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-4">
-<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="document.getElementById('new-customer-modal').classList.remove('hidden'); if(window.innerWidth < 1024) toggleSidebar();">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-primary-container text-white font-headline font-bold text-md rounded-xl hover:scale-[1.02] active:scale-95 transition-all" onclick="openNewCustomerModal(); if(window.innerWidth < 1024) toggleSidebar();">
 <span class="material-symbols-outlined text-xl">person_add</span> + 신규 고객 등록
         </button>
 </div>
@@ -100,9 +100,9 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+<div id="loading-overlay" style="display: none;" class="absolute inset-0 z-[110] flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 원본을 가져오는 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -131,15 +131,15 @@
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 lg:mb-8 gap-4 relative z-10">
 <div class="w-full sm:w-auto">
 <h2 id="detail-title" class="text-lg lg:text-xl font-bold font-headline text-primary-container mb-2 lg:mb-1 truncate w-full">고객 상세</h2>
-<span class="flex items-center gap-3 text-base lg:text-lg font-bold text-on-surface">
+<span class="flex items-center gap-3 text-sm lg:text-base font-medium text-on-surface">
     <span id="detail-phone-text">-</span>
-    <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
+    <a id="detail-phone-link" class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
         <span class="material-symbols-outlined text-lg lg:text-xl">call</span>
     </a>
 </span>
 </div>
 <div class="flex gap-2 w-full sm:w-auto z-20">
-<button id="btn-delete-prospect" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-error hover:bg-error/10 transition-all font-headline shadow-sm cursor-pointer relative z-20">삭제</button>
+<button id="btn-delete-prospect" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-error hover:bg-error/10 transition-all font-headline shadow-sm cursor-pointer relative z-20">삭제하기</button>
 <button id="btn-edit-prospect" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-surface-container-high font-bold text-sm text-primary-container hover:bg-primary-container hover:text-white transition-all font-headline shadow-sm cursor-pointer relative z-20">수정하기</button>
 <button id="btn-take-case" class="flex-1 sm:flex-none px-4 lg:px-5 py-2.5 rounded-lg bg-primary-container text-white font-bold text-sm shadow-lg shadow-primary-container/20 font-headline hover:scale-[1.02] active:scale-95 transition-all cursor-pointer relative z-20">사건 수임</button>
 </div>
@@ -149,25 +149,25 @@
 <table class="w-full text-left border-collapse font-body min-w-[500px]">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">DB 유입 날짜</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">1차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">2차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">안내 금액</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">DB 유입 날짜</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">1차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">2차 상담자</th>
+<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase tracking-wide">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
 <tr class="border-b border-outline-variant/5">
-<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-sm lg:text-base text-on-surface whitespace-nowrap">-</td>
-<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-sm lg:text-base text-primary-container whitespace-nowrap">-</td>
+<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-xs lg:text-sm text-on-surface whitespace-nowrap">-</td>
+<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-xs lg:text-sm text-primary-container whitespace-nowrap">-</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="flex-1 overflow-y-visible lg:overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
-<h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
+<h3 class="text-[10px] lg:text-[11px] font-black text-outline uppercase tracking-wider mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10 font-headline">상담 히스토리</h3>
 <div id="history-container" class="relative pl-6 lg:pl-8 space-y-5 lg:space-y-6 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
 </div>
 </div>
@@ -178,14 +178,14 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-6">
             <div class="flex gap-3 w-full sm:flex-1">
                 <div class="flex-1">
-                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline uppercase tracking-widest mb-1 ml-1 font-body">연락 예정일</label>
                     <div class="relative">
                         <input id="note-date" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-body focus:ring-1 focus:ring-primary-container" type="date"/>
                         <span class="material-symbols-outlined absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 text-primary-container pointer-events-none text-base lg:text-lg">calendar_month</span>
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
+                    <label class="block text-[9px] lg:text-[10px] font-bold text-outline uppercase tracking-widest mb-1 ml-1 font-body">상태 변경</label>
                     <select id="bottom-status-select" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-lg text-xs lg:text-sm font-bold text-primary-container focus:ring-1 focus:ring-primary-container appearance-none font-body pr-8">
                         <option value="">상태 없음</option>
                         <option value="계약완료">계약완료</option><option value="보류">보류</option><option value="불발">불발</option><option value="대기">대기</option><option value="단순">단순</option><option value="노담">노담</option><option value="노쇼">노쇼</option><option value="중복">중복</option><option value="전달">전달</option><option value="부재중">부재중</option><option value="제외">제외</option><option value="명도보류">명도보류</option><option value="가선보류">가선보류</option><option value="타변">타변</option>
@@ -326,6 +326,29 @@
 </div>
 
 <script>
+    // 수정사항 1: 로딩 오버레이 딜레이 원천 차단 함수
+    function showLoading() {
+        const el = document.getElementById('loading-overlay');
+        el.style.display = 'flex';
+        el.classList.remove('fade-out');
+    }
+    function hideLoading() {
+        const el = document.getElementById('loading-overlay');
+        el.classList.add('fade-out');
+        setTimeout(() => { el.style.display = 'none'; }, 300);
+    }
+
+    // 수정사항 4: 폼 싹 비우고 모달 여는 전용 함수
+    window.openNewCustomerModal = function() {
+        document.getElementById('new-customer-form').reset();
+        const dInput = document.getElementById('today-date');
+        if(dInput) {
+            const d = new Date();
+            dInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+        document.getElementById('new-customer-modal').classList.remove('hidden');
+    };
+
     window.toggleSidebar = function() {
         const sidebar = document.getElementById('mobile-sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -334,13 +357,15 @@
     };
 
     (async function initProspectsFromGAS() {
-        // 지은 님의 원본 웹 앱 주소 유지
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        // 내 브라우저 저장소 (새로고침 방어용 금고)
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v7';
-        let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+        const LOCAL_ADDITIONS_KEY = 'crm_local_additions_v8';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v8'; 
         
+        let localAdditions = JSON.parse(localStorage.getItem(LOCAL_ADDITIONS_KEY)) || [];
+        let gasRecords = JSON.parse(localStorage.getItem(GAS_CACHE_KEY)) || []; 
+        let isEventsBound = false;
+
         const today = new Date();
         const currentYear = String(today.getFullYear());
         const currentMonth = String(today.getMonth() + 1);
@@ -356,7 +381,7 @@
             searchQuery: '', 
             currentPage: 1, 
             itemsPerPage: 30,
-            sortOrder: 'desc'
+            sortOrder: 'desc' 
         };
 
         const yrEl = document.getElementById('filter-year-select');
@@ -381,7 +406,7 @@
             return v;
         }
 
-        function normalizeRecord(rec, idx) {
+        function normalizeRecord(rec, uniqueIdOverride) {
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
             const name = String(rec.name || '').trim();
@@ -396,7 +421,7 @@
             }
 
             return {
-                id: rec.id || `r-${idx}`,
+                id: uniqueIdOverride || rec.id || encodeURIComponent(`${name}|${phone}|${rawDateStr}`), 
                 name: name || phone || '-',
                 phone: phone,
                 contractStatus: rec.contractStatus ? rec.contractStatus.trim() : '',
@@ -409,8 +434,9 @@
                 monthToken: rec.sheetMonth || parseInt(currentMonth, 10),
                 suspect: rec.suspect || '',
                 path: rec.path || '',
-                isNew: rec.isNew || false,
-                consultationHistory: initialHistory 
+                isCrmAdded: rec.isCrmAdded || false, 
+                consultationHistory: rec.consultationHistory || initialHistory,
+                __sort: rec.__sort || 0 
             };
         }
 
@@ -556,7 +582,7 @@
             state.filteredRecords = state.allRecords.filter((r) => {
                 const yOk = state.selectedYear === 'all' ? true : r.yearToken === parseInt(state.selectedYear, 10);
                 const mOk = state.selectedMonth === 'all' ? true : r.monthToken === parseInt(state.selectedMonth, 10);
-                const crmOk = state.crmOnly ? (r.showCrmBadge === true || r.isNew === true) : true;
+                const crmOk = state.crmOnly ? (r.showCrmBadge === true || r.isCrmAdded === true) : true;
                 const focusOk = state.focusOnly ? focusTarget.includes(r.contractStatus) : true;
                 
                 let searchOk = true;
@@ -568,7 +594,6 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 요청 1. 정렬 로직 보완: 구글 시트 원본을 가져올 때 이미 최신순으로 뒤집혀 있음 (desc).
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -576,280 +601,286 @@
             updateToggleUI(); 
         }
 
-        // 전체 UI 갱신 함수
-        function updateUI() {
+        function updateUIWithData() {
+            const recordMap = new Map();
+            gasRecords.forEach(r => recordMap.set(r.id, r));
+            localAdditions.forEach(r => recordMap.set(r.id, r)); 
+
+            state.allRecords = Array.from(recordMap.values());
+            
+            // 수정사항 3: 여기서 완벽하게 내림차순(최신순)으로 정렬됨
+            state.allRecords.sort((a, b) => b.__sort - a.__sort);
+            
             applyFilters(); 
             renderList(); 
-            if (state.filteredRecords.length > 0) {
+            
+            if(state.filteredRecords.length > 0) {
                 if (state.selectedIndex >= state.filteredRecords.length) state.selectedIndex = 0;
-                renderDetail(state.filteredRecords[state.selectedIndex]);
+                const currentRec = state.filteredRecords[state.selectedIndex];
+                renderDetail(currentRec);
             } else {
                 renderDetail(null);
             }
         }
 
-        document.getElementById('search-input').addEventListener('input', (e) => { 
-            state.searchQuery = e.target.value; 
-            state.currentPage = 1; state.selectedIndex = 0;
-            updateUI();
-        });
-
-        document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
-        document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
-        
-        document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
-        document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; updateUI(); });
-        
-        document.getElementById('btn-sort-toggle').addEventListener('click', () => {
-            state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
-            document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
-            state.currentPage = 1; state.selectedIndex = 0;
-            updateUI();
-        });
-
-        document.getElementById('nav-all-prospects').addEventListener('click', () => {
-            state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all'; state.searchQuery = '';
-            document.getElementById('filter-year-select').value = 'all';
-            document.getElementById('filter-month-select').value = 'all';
-            document.getElementById('search-input').value = '';
-            state.currentPage = 1; state.selectedIndex = 0;
-            updateUI();
-            if(window.innerWidth < 1024) toggleSidebar();
-        });
-
-        document.getElementById('prospect-list-container').addEventListener('click', (e) => {
-            const card = e.target.closest('[data-index]');
-            if (!card) return;
-            state.selectedIndex = Number(card.dataset.index);
-            renderList(); 
-            renderDetail(state.filteredRecords[state.selectedIndex]);
-        });
-
-        const bottomStatusSelect = document.getElementById('bottom-status-select');
-        if (bottomStatusSelect) {
-            bottomStatusSelect.addEventListener('change', (e) => {
-                const record = state.filteredRecords[state.selectedIndex];
-                if (!record) return;
-                record.contractStatus = e.target.value;
-                const originalRecord = state.allRecords.find(r => r.id === record.id);
-                if (originalRecord) originalRecord.contractStatus = e.target.value;
-                
-                // 로컬 저장
-                if(record.isNew) {
-                    const lIdx = localData.findIndex(r => r.id === record.id);
-                    if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
-                }
-                updateUI();
-            });
+        function saveLocalAdditions() {
+            localStorage.setItem(LOCAL_ADDITIONS_KEY, JSON.stringify(localAdditions));
         }
 
-        document.getElementById('btn-add-note').addEventListener('click', () => {
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record) return;
+        function bindEvents() {
+            document.getElementById('search-input').addEventListener('input', (e) => { 
+                state.searchQuery = e.target.value; 
+                state.currentPage = 1; state.selectedIndex = 0;
+                updateUIWithData(); 
+            });
+
+            document.getElementById('filter-year-select').addEventListener('change', (e) => { state.selectedYear = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
+            document.getElementById('filter-month-select').addEventListener('change', (e) => { state.selectedMonth = e.target.value; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
             
-            const noteContent = document.getElementById('note-content').value.trim();
-            const noteDate = document.getElementById('note-date').value;
-            const statusSelect = document.getElementById('bottom-status-select').value;
+            document.getElementById('filter-crm-btn').addEventListener('click', () => { state.crmOnly = !state.crmOnly; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
+            document.getElementById('filter-focus-btn').addEventListener('click', () => { state.focusOnly = !state.focusOnly; state.currentPage = 1; state.selectedIndex = 0; updateUIWithData(); });
             
-            if (noteContent) {
-                if (!record.consultationHistory) record.consultationHistory = [];
-                record.consultationHistory.unshift({
-                    date: noteDate || new Date().toISOString().split('T')[0],
-                    author: '상담자', 
-                    content: noteContent
+            document.getElementById('btn-sort-toggle').addEventListener('click', () => {
+                state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+                document.getElementById('sort-text').textContent = state.sortOrder === 'desc' ? '최신순' : '오래된순';
+                state.currentPage = 1; state.selectedIndex = 0;
+                updateUIWithData();
+            });
+
+            document.getElementById('nav-all-prospects').addEventListener('click', () => {
+                state.crmOnly = false; state.focusOnly = false; state.selectedYear = 'all'; state.selectedMonth = 'all'; state.searchQuery = '';
+                document.getElementById('filter-year-select').value = 'all';
+                document.getElementById('filter-month-select').value = 'all';
+                document.getElementById('search-input').value = '';
+                state.currentPage = 1; state.selectedIndex = 0;
+                updateUIWithData();
+                if(window.innerWidth < 1024) toggleSidebar();
+            });
+
+            document.getElementById('prospect-list-container').addEventListener('click', (e) => {
+                const card = e.target.closest('[data-index]');
+                if (!card) return;
+                state.selectedIndex = Number(card.dataset.index);
+                renderList(); 
+                renderDetail(state.filteredRecords[state.selectedIndex]);
+            });
+
+            const bottomStatusSelect = document.getElementById('bottom-status-select');
+            if (bottomStatusSelect) {
+                bottomStatusSelect.addEventListener('change', (e) => {
+                    const record = state.filteredRecords[state.selectedIndex];
+                    if (!record) return;
+                    record.contractStatus = e.target.value;
+                    
+                    const localIdx = localAdditions.findIndex(r => r.id === record.id);
+                    if (localIdx > -1) { 
+                        localAdditions[localIdx] = record; 
+                    } else {
+                        localAdditions.push(record);
+                    }
+                    saveLocalAdditions();
+                    updateUIWithData();
                 });
             }
-            if (statusSelect) record.contractStatus = statusSelect;
 
-            const originalRecord = state.allRecords.find(r => r.id === record.id);
-            if (originalRecord) {
-                originalRecord.consultationHistory = record.consultationHistory;
-                originalRecord.contractStatus = record.contractStatus;
+            document.getElementById('btn-add-note').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                const noteContent = document.getElementById('note-content').value.trim();
+                const noteDate = document.getElementById('note-date').value;
+                const statusSelect = document.getElementById('bottom-status-select').value;
+                
+                if (noteContent) {
+                    if (!record.consultationHistory) record.consultationHistory = [];
+                    record.consultationHistory.unshift({
+                        date: noteDate || new Date().toISOString().split('T')[0],
+                        author: '상담자', 
+                        content: noteContent
+                    });
+                }
+                if (statusSelect) record.contractStatus = statusSelect;
+
+                const localIdx = localAdditions.findIndex(r => r.id === record.id);
+                if (localIdx > -1) { 
+                    localAdditions[localIdx] = record; 
+                } else {
+                    localAdditions.push(record);
+                }
+                saveLocalAdditions();
+
+                document.getElementById('note-content').value = ''; 
+                updateUIWithData();
+            });
+
+            // 수정사항 2: 신규 등록 시 전체로 풀리지 않게 방어
+            document.getElementById('new-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const todayStr = document.getElementById('today-date').value || new Date().toISOString().split('T')[0];
+                const [y, m, d] = todayStr.split('-');
+                
+                const newRecRaw = {
+                    name: document.getElementById('new-name').value,
+                    phone: document.getElementById('new-phone').value,
+                    isNew: true, 
+                    isCrmAdded: true, 
+                    dbEntryDateRaw: todayStr.replace(/-/g, '.'), 
+                    path: document.getElementById('new-path').value,
+                    suspect: document.getElementById('new-suspect').value,
+                    firstCounselor: document.getElementById('new-counselor').value,
+                    contractStatus: document.getElementById('new-status').value,
+                    consultationContent: document.getElementById('new-memo').value,
+                    sheetYear: parseInt(y, 10), 
+                    sheetMonth: parseInt(m, 10), 
+                    __sort: Date.now() * 1000 // 신규 데이터는 무조건 1등
+                };
+                
+                const newRecNormalized = normalizeRecord(newRecRaw, `local_${Date.now()}`);
+                localAdditions.unshift(newRecNormalized); 
+                saveLocalAdditions(); 
+                
+                document.getElementById('new-customer-modal').classList.add('hidden');
+                
+                // 기존에 전체 목록 클릭 코드를 지우고, 그냥 현재 상태에서 화면만 새로 그림
+                updateUIWithData(); 
+            });
+
+            document.getElementById('btn-take-case').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                record.contractStatus = '계약완료';
+                
+                const localIdx = localAdditions.findIndex(r => r.id === record.id);
+                if (localIdx > -1) { 
+                    localAdditions[localIdx] = record; 
+                } else {
+                    localAdditions.push(record);
+                }
+                saveLocalAdditions();
+                updateUIWithData();
+            });
+
+            document.getElementById('btn-edit-prospect').addEventListener('click', () => {
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+                
+                document.getElementById('edit-date').value = record.dbEntryDateRaw;
+                document.getElementById('edit-name').value = record.name !== '-' ? record.name : '';
+                document.getElementById('edit-phone').value = record.phone;
+                document.getElementById('edit-path').value = record.path;
+                document.getElementById('edit-suspect').value = record.suspect;
+                document.getElementById('edit-counselor1').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
+                document.getElementById('edit-counselor2').value = record.secondCounselor !== '-' ? record.secondCounselor : '';
+                document.getElementById('edit-price').value = record.firstGuideAmount !== '-' ? record.firstGuideAmount : '';
+                document.getElementById('edit-status').value = record.contractStatus;
+
+                document.getElementById('edit-customer-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('edit-customer-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const record = state.filteredRecords[state.selectedIndex];
+                if (!record) return;
+
+                record.dbEntryDateRaw = document.getElementById('edit-date').value;
+                record.name = document.getElementById('edit-name').value || '-';
+                record.phone = formatPhone(document.getElementById('edit-phone').value);
+                record.path = document.getElementById('edit-path').value;
+                record.suspect = document.getElementById('edit-suspect').value;
+                record.firstCounselor = document.getElementById('edit-counselor1').value || '-';
+                record.secondCounselor = document.getElementById('edit-counselor2').value || '-';
+                record.firstGuideAmount = document.getElementById('edit-price').value || '-';
+                record.contractStatus = document.getElementById('edit-status').value;
+
+                const localIdx = localAdditions.findIndex(r => r.id === record.id);
+                if (localIdx > -1) { 
+                    localAdditions[localIdx] = record; 
+                } else {
+                    localAdditions.push(record);
+                }
+                saveLocalAdditions();
+
+                document.getElementById('edit-customer-modal').classList.add('hidden');
+                updateUIWithData();
+            });
+
+            // 요청 3: 데이터 삭제 기능 (CRM 추가 데이터만)
+            const deleteBtn = document.getElementById('btn-delete-prospect');
+            const deleteModal = document.getElementById('delete-customer-modal');
+            const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    const record = state.filteredRecords[state.selectedIndex];
+                    if (!record) return;
+                    
+                    if (!record.isCrmAdded) {
+                        alert('❌ 원본 시트 데이터 보호 ❌\n\n구글 시트에서 직접 연동된 데이터는 안전을 위해 웹에서 삭제할 수 없습니다. \n(웹에서 직접 등록한 CRM 데이터만 삭제 가능합니다.)');
+                        return;
+                    }
+                    
+                    document.getElementById('delete-modal-title').innerHTML = `<strong class="text-error font-black">${record.name}</strong> 고객 삭제`;
+                    deleteModal.classList.remove('hidden');
+                });
             }
 
-            // 로컬 저장
-            if(record.isNew) {
-                const lIdx = localData.findIndex(r => r.id === record.id);
-                if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
+            if (deleteConfirmBtn) {
+                deleteConfirmBtn.addEventListener('click', () => {
+                    const record = state.filteredRecords[state.selectedIndex];
+                    if (!record || !record.isCrmAdded) return;
+
+                    localAdditions = localAdditions.filter(r => r.id !== record.id);
+                    saveLocalAdditions();
+                    deleteModal.classList.add('hidden');
+                    
+                    state.selectedIndex = 0; 
+                    updateUIWithData();
+                });
             }
-
-            document.getElementById('note-content').value = ''; 
-            updateUI();
-        });
-
-        // 요청 4: 신규 고객 등록 로직
-        document.getElementById('new-customer-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const todayStr = document.getElementById('today-date').value || new Date().toISOString().split('T')[0];
-            const [y, m, d] = todayStr.split('-');
-            
-            const newRecRaw = {
-                name: document.getElementById('new-name').value,
-                phone: document.getElementById('new-phone').value,
-                isNew: true, 
-                dbEntryDateRaw: todayStr.replace(/-/g, '.'), 
-                path: document.getElementById('new-path').value,
-                suspect: document.getElementById('new-suspect').value,
-                firstCounselor: document.getElementById('new-counselor').value,
-                contractStatus: document.getElementById('new-status').value,
-                consultationContent: document.getElementById('new-memo').value,
-                sheetYear: parseInt(y, 10), // 필터링을 위해 연도 강제 주입
-                sheetMonth: parseInt(m, 10) // 필터링을 위해 월 강제 주입
-            };
-            
-            const newRec = normalizeRecord(newRecRaw, `local_${Date.now()}`);
-            
-            // 로컬 금고에 쏙
-            localData.unshift(newRec);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
-            
-            // 전체 리스트에도 쏙
-            state.allRecords.unshift(newRec); 
-            
-            document.getElementById('new-customer-modal').classList.add('hidden');
-            document.getElementById('nav-all-prospects').click(); // 목록 전체 새로고침
-        });
-
-        document.getElementById('btn-take-case').addEventListener('click', () => {
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record) return;
-            record.contractStatus = '계약완료';
-            const originalRecord = state.allRecords.find(r => r.id === record.id);
-            if (originalRecord) originalRecord.contractStatus = '계약완료';
-
-            // 로컬 저장
-            if(record.isNew) {
-                const lIdx = localData.findIndex(r => r.id === record.id);
-                if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
-            }
-
-            updateUI();
-        });
-
-        document.getElementById('btn-edit-prospect').addEventListener('click', () => {
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record) return;
-            
-            document.getElementById('edit-date').value = record.dbEntryDateRaw;
-            document.getElementById('edit-name').value = record.name !== '-' ? record.name : '';
-            document.getElementById('edit-phone').value = record.phone;
-            document.getElementById('edit-path').value = record.path;
-            document.getElementById('edit-suspect').value = record.suspect;
-            document.getElementById('edit-counselor1').value = record.firstCounselor !== '-' ? record.firstCounselor : '';
-            document.getElementById('edit-counselor2').value = record.secondCounselor !== '-' ? record.secondCounselor : '';
-            document.getElementById('edit-price').value = record.firstGuideAmount !== '-' ? record.firstGuideAmount : '';
-            document.getElementById('edit-status').value = record.contractStatus;
-
-            document.getElementById('edit-customer-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('edit-customer-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record) return;
-
-            const originalRecord = state.allRecords.find(r => r.id === record.id);
-            if (!originalRecord) return;
-
-            originalRecord.dbEntryDateRaw = document.getElementById('edit-date').value;
-            originalRecord.name = document.getElementById('edit-name').value || '-';
-            originalRecord.phone = formatPhone(document.getElementById('edit-phone').value);
-            originalRecord.path = document.getElementById('edit-path').value;
-            originalRecord.suspect = document.getElementById('edit-suspect').value;
-            originalRecord.firstCounselor = document.getElementById('edit-counselor1').value || '-';
-            originalRecord.secondCounselor = document.getElementById('edit-counselor2').value || '-';
-            originalRecord.firstGuideAmount = document.getElementById('edit-price').value || '-';
-            originalRecord.contractStatus = document.getElementById('edit-status').value;
-
-            record.dbEntryDateRaw = originalRecord.dbEntryDateRaw;
-            record.name = originalRecord.name;
-            record.phone = originalRecord.phone;
-            record.path = originalRecord.path;
-            record.suspect = originalRecord.suspect;
-            record.firstCounselor = originalRecord.firstCounselor;
-            record.secondCounselor = originalRecord.secondCounselor;
-            record.firstGuideAmount = originalRecord.firstGuideAmount;
-            record.contractStatus = originalRecord.contractStatus;
-
-            // 로컬 저장
-            if(record.isNew) {
-                const lIdx = localData.findIndex(r => r.id === record.id);
-                if(lIdx > -1) { localData[lIdx] = record; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData)); }
-            }
-
-            document.getElementById('edit-customer-modal').classList.add('hidden');
-            updateUI();
-        });
-
-        // 요청 3: 데이터 삭제 기능 (로컬 추가본 한정)
-        document.getElementById('btn-delete-prospect').addEventListener('click', () => {
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record) return;
-            
-            if (!record.isNew) {
-                alert('❌ 구글 시트 원본 보호 ❌\n\n구글 시트에서 연동된 원본 데이터는 삭제할 수 없습니다. 시트에서 직접 지워주세요.');
-                return;
-            }
-            
-            document.getElementById('delete-modal-title').innerHTML = `<strong class="text-error font-black">${record.name}</strong> 고객 삭제`;
-            document.getElementById('delete-customer-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('btn-delete-confirm').addEventListener('click', () => {
-            const record = state.filteredRecords[state.selectedIndex];
-            if (!record || !record.isNew) return;
-
-            // 1. 브라우저 금고에서 영구 삭제
-            localData = localData.filter(r => r.id !== record.id);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
-            
-            // 2. 현재 화면 리스트에서 삭제
-            state.allRecords = state.allRecords.filter(r => r.id !== record.id);
-            
-            document.getElementById('delete-customer-modal').classList.add('hidden');
-            state.selectedIndex = 0;
-            updateUI();
-        });
-
-        // 오늘 날짜 폼에 기본 세팅
-        const dateInput = document.getElementById('today-date');
-        if(dateInput) {
-            const d = new Date();
-            dateInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
 
-        // [데이터 로딩 & 요청 5: 오류 알림창 제거]
-        async function fetchFromGAS() {
+        // [핵심] 조용히 백그라운드에서 구글 시트를 불러오기 (수정사항 3: 정렬 복구)
+        async function fetchFromGAS(isBackground = false) {
             try {
-                document.getElementById('loading-overlay').classList.remove('hidden');
+                if (!isBackground) showLoading();
                 
                 const url = `${GAS_WEBAPP_URL}?action=prospects`;
                 const res = await fetch(url);
-                // 강제 alert 팝업 삭제!!! 조용히 실패만 처리합니다.
-                if (!res.ok) throw new Error('네트워크 연결 문제');
+                if (!res.ok) throw new Error('네트워크 문제');
                 
                 const payload = await res.json();
                 
-                // 요청 1: 구글 시트 배열을 아예 뒤집어서(최신이 맨앞으로 오게) 가져옵니다.
-                payload.records.reverse(); 
+                // 수정사항 3: 리버스 제거하고, i를 그대로 sort 번호로 부여 (i가 높을수록 최근 = 맨 위에 오도록)
+                gasRecords = (payload.records || []).map((r, i) => {
+                    let rec = normalizeRecord(r, `gas_${i}`);
+                    rec.__sort = i; 
+                    return rec;
+                });
                 
-                // 로컬 데이터 + 구글 시트 최신 데이터 병합
-                state.allRecords = [...localData, ...payload.records.map((r, i) => normalizeRecord(r, `gas_${i}`))];
+                localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords));
+                updateUIWithData();
                 
-                updateUI();
+                if (!isEventsBound) {
+                    bindEvents();
+                    isEventsBound = true;
+                }
             } catch (err) {
-                // 팝업 안 띄움. 그냥 콘솔에만 찍고 넘김
-                console.error('데이터 통신 문제 (무시 가능):', err);
+                console.error('데이터 통신 문제:', err);
             } finally {
-                const overlay = document.getElementById('loading-overlay');
-                overlay.classList.add('fade-out');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+                hideLoading();
             }
         }
 
-        // 처음에 페이지 열면 즉시 실행
-        fetchFromGAS();
+        // 처음 접속 시 무조건 0.1초 만에 화면 띄우기
+        if (gasRecords.length > 0) {
+            updateUIWithData();
+            bindEvents();
+            isEventsBound = true;
+            fetchFromGAS(true);
+        } else {
+            fetchFromGAS(false);
+        }
     })();
 </script>
 </body></html>
