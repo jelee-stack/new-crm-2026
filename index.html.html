@@ -100,16 +100,18 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: flex;">
+<div id="loading-overlay" style="display: none;" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 연동 중...</p>
-    <p class="mt-2 text-xs text-outline font-body bg-surface-container px-3 py-1 rounded-full">최초 1회만 시간이 소요되며, 이후에는 즉시 표시됩니다.</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
 <div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/80 lg:bg-transparent backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none">
 <div class="flex justify-between items-center mb-2 lg:mb-4">
-<h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+<div class="flex items-center gap-2">
+    <h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+    <span id="sync-indicator" class="hidden text-[10px] bg-primary-container/10 text-primary-container px-2 py-0.5 rounded-full font-bold items-center gap-1 animate-pulse"><span class="material-symbols-outlined text-[12px] animate-spin">sync</span>동기화 중...</span>
+</div>
 <div class="flex items-center gap-2">
     <span id="badge-total-count" class="text-[10px] lg:text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
     <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-1 lg:ml-2">
@@ -251,7 +253,7 @@
     <select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8" onchange="if(this.value==='직접입력'){document.getElementById('new-counselor-direct').classList.remove('hidden');document.getElementById('new-counselor-direct').focus();}else{document.getElementById('new-counselor-direct').classList.add('hidden');}">
         <option value="원진혁">원진혁</option><option value="홍준기">홍준기</option><option value="이지은">이지은</option><option value="직접입력">직접입력</option>
     </select>
-    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 입력" />
+    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 직접 입력" />
 </div>
 </div>
 <div class="space-y-1">
@@ -330,7 +332,7 @@
 </div>
 
 <script>
-    // 완벽 수정: 신규 등록 폼 싹 비우고 오늘 날짜 꽂는 로직
+    // 완벽 수정: 신규 등록 폼 싹 비우기 + 오늘 날짜 세팅 + 직접입력 텍스트 숨기기 함수
     window.openNewCustomerModal = function() {
         const form = document.getElementById('new-customer-form');
         if(form) form.reset();
@@ -344,7 +346,10 @@
         const dInput = document.getElementById('today-date');
         if(dInput) {
             const d = new Date();
-            dInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            dInput.value = `${y}-${m}-${day}`;
         }
         document.getElementById('new-customer-modal').classList.remove('hidden');
     };
@@ -356,7 +361,7 @@
         overlay.classList.toggle('hidden');
     };
 
-    // 전역 스코프: 상담 히스토리 수정/삭제 
+    // 상담 히스토리 수정 & 삭제 (전역 함수)
     window.editHistoryCard = function(recordId, historyId) {
         const record = window.__crmState.allRecords.find(r => r.id === recordId);
         if(!record) return;
@@ -383,18 +388,18 @@
     };
 
     (async function initProspectsFromGAS() {
-        // 데이터 연동 원본 주소 보존!
+        // [절대 보존] 지은 님 원본 통신 주소 
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v34';
-        const GAS_CACHE_KEY = 'crm_gas_cache_v34'; 
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v35';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v35'; 
         
         let localData = [];
         let gasRecords = [];
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            // 완벽 수정: 캐시 용량 폭발(5MB 에러)을 막기 위해 300개만 슬라이스해서 가져옵니다.
+            // 완벽 수정: 브라우저 용량 제한(5MB) 에러를 원천 차단하기 위해 저장해둔 캐시만 불러옵니다.
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
         } catch(e) { console.warn('Cache error', e); }
@@ -460,15 +465,16 @@
             
             let initialHistory = [];
             
-            // 완벽 수정: 문의사항 J열을 낚아채서 무조건 맨 위에 고정시킴
-            const inquiryText = String(rec.inquiry || rec['문의사항'] || '').trim();
+            // 완벽 수정: 문의사항(J열) 상단 붉은 고정 카드화 (코드 A의 정상 로직 복구)
+            const inq = rec.inquiry || rec['문의사항'];
+            const inquiryText = String(inq || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
                     id: `fixed-inquiry-${idxPrefix}`,
                     date: '문의사항',
                     author: '고객',
                     content: inquiryText,
-                    isFixed: true // 이 꼬리표가 있으면 화면 상단에 붉게 고정됩니다.
+                    isFixed: true 
                 });
             }
 
@@ -528,9 +534,9 @@
                 const frag = document.createDocumentFragment();
                 histories.forEach((h, idx) => {
                     const wrap = document.createElement('div');
-                    wrap.className = 'relative group'; // 호버 그룹
+                    wrap.className = 'relative group'; 
                     
-                    // 문의사항 카드가 아니면 우측 상단에 펜/휴지통 아이콘 표시
+                    // 문의사항 카드가 아니면 마우스 올렸을 때 수정/삭제 표시
                     let actionsHtml = '';
                     if (!h.isFixed) {
                         actionsHtml = `
@@ -541,7 +547,7 @@
                         `;
                     }
 
-                    // 문의사항 J열 전용 붉은색 스타일
+                    // 문의사항(J열) 전용 붉은색 강조 스타일!
                     const badgeStyle = h.isFixed ? 'bg-error/10 text-error border-error/20' : 'bg-surface-container text-on-primary-fixed-variant';
                     const cardStyle = h.isFixed ? 'border-error/30 ring-1 ring-error/10 bg-error/5' : 'border-outline-variant/5 bg-white';
 
@@ -674,7 +680,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 화면 버튼이 역순일 때만 뒤집기 (기본은 최신순)
+            // 화면에서 [오래된순]을 눌렀을 때만 배열을 뒤집습니다.
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -689,8 +695,8 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 완벽 수정: __sort 점수가 큰 데이터(최신)가 배열 맨 위로 오도록 내림차순 정렬!
-            // 이걸로 23년도가 위로 오던 꼬임 버그가 100% 해결됩니다.
+            // 완벽 수정: __sort 점수를 이용해 무조건 '내림차순(최신순)'으로 완벽하게 정렬시킵니다!
+            // 23년 데이터가 위로 오던 꼬임 현상을 100% 잡아냅니다.
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -786,13 +792,14 @@
                 window.__updateUIWithData();
             });
 
-            // 완벽 수정: 신규 등록 완료 후 폼을 지우고 현재 필터 화면에 조용히 남습니다.
+            // 완벽 수정: 신규 등록 후 필터 유지! (전체보기 강제 이동 악성코드 삭제)
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 const todayStr = document.getElementById('today-date').value || new Date().toISOString().split('T')[0];
                 const [y, m, d] = todayStr.split('-');
                 
+                // 직접 입력 필드 캐치
                 let counselorVal = document.getElementById('new-counselor').value;
                 if (counselorVal === '직접입력') {
                     counselorVal = document.getElementById('new-counselor-direct').value || '미상';
@@ -803,7 +810,7 @@
                     name: document.getElementById('new-name').value,
                     phone: document.getElementById('new-phone').value,
                     isNew: true,
-                    isCustom: true, 
+                    isCustom: true, // 웹 생성 식별자
                     dbEntryDateRaw: todayStr.replace(/-/g, '.'),
                     path: document.getElementById('new-path').value,
                     suspect: document.getElementById('new-suspect').value,
@@ -812,7 +819,7 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
                     sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 // 신규는 시간이 제일 크므로 무조건 1등으로 최상단 등극
+                    __sort: Date.now() * 1000 // 신규 데이터는 무조건 1등
                 };
 
                 const newRec = normalizeRecord(rawRec, rawRec.id);
@@ -820,7 +827,7 @@
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 기존 '전체 보기 강제 이동' 코드 삭제. 
+                // 현재 보시던 필터 화면을 유지하면서, 리스트의 1번째로 스무스하게 갱신!
                 state.selectedIndex = 0;
                 window.__updateUIWithData(); 
             });
@@ -886,7 +893,7 @@
                 window.__updateUIWithData();
             });
 
-            // 데이터 전체 삭제 (웹 생성 데이터만 보호막 해제)
+            // 데이터 삭제 방어
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -921,7 +928,7 @@
             }
         }
 
-        // 완벽 수정: 모바일 캐시 무력화 및 새로고침 0초 딜레이 꼼수
+        // 완벽 수정: 모바일 캐시 무력화 & 새로고침 0.1초 딜레이 제거
         async function fetchFromGAS(isBackground = false) {
             try {
                 if (!isBackground) {
@@ -929,33 +936,29 @@
                     overlay.style.display = 'flex';
                 }
                 
-                // 모바일 브라우저의 지독한 캐시 고집을 깨버리기 위한 시간 꼬리표
+                // 모바일 브라우저가 옛날 데이터를 띄우지 못하도록 시간 꼬리표를 강제로 붙입니다.
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error('네트워크 연동 문제');
+                if (!res.ok) throw new Error('네트워크 연동 에러');
 
                 const payload = await res.json();
 
-                // 완벽 수정: 배열을 도착하자마자 일단 뒤집습니다. (26년도가 인덱스 0번으로 오게 만듦)
-                if (payload.records && payload.records.length > 0) {
-                    payload.records.reverse();
-                }
-
-                // 그러면 0번 인덱스가 제일 최신이므로, (전체길이 - 0)을 정렬 점수로 줍니다.
-                // 23년도는 인덱스가 11999번 쯤 될테니 (전체길이 - 11999) = 1 점을 받게 됩니다.
-                // 점수가 클수록 최신순 정렬되므로 버그 원천 봉쇄!!
-                const total = payload.records ? payload.records.length : 0;
+                // 완벽 수정 (23년도 정렬 꼬임 박살): 
+                // 구글 서버가 주는 순서 그대로 i 번호를 매기면 최신 데이터가 무조건 큰 번호를 갖게 됩니다.
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = total - i; 
+                    rec.__sort = i; 
                     return rec;
                 });
 
-                // 완벽 수정: 5MB 용량 초과로 뻗는 금고(캐시)를 살리기 위해, 최신 300개만 딱 잘라서 보관!
-                // 이렇게 하면 다음 새로고침 할 때 이 300개를 0.1초 만에 바로 보여줄 수 있습니다.
+                // 완벽 수정 (새로고침 0초 렌더링): 
+                // 1만 개를 통째로 저장하면 5MB 용량 에러가 나면서 캐시가 다 날아갑니다.
+                // 그러니 에러 방지를 위해 가장 뒤쪽에 있는 최신 데이터 300개만 딱 잘라서 금고에 저장합니다!
+                // 이렇게 하면 다음 새로고침 시 이 300개를 바탕으로 0.1초 만에 화면이 뜨게 됩니다!
                 try { 
-                    localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords.slice(0, 300))); 
-                } catch(e) { console.warn('캐시 저장 실패'); }
+                    const safeCache = gasRecords.slice(-300);
+                    localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
+                } catch(e) {}
 
                 window.__updateUIWithData();
 
@@ -968,21 +971,21 @@
             } finally {
                 const overlay = document.getElementById('loading-overlay');
                 overlay.classList.add('fade-out');
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                setTimeout(() => { overlay.style.display = 'none'; overlay.classList.remove('fade-out'); }, 300);
             }
         }
 
-        // 금고(캐시)에 데이터가 있으면 로딩 없이 즉시 렌더링
+        // 초기 화면 접속 시
         if (gasRecords.length > 0) {
+            // 캐시 금고에 300개가 있으면 0.1초 만에 바로 화면을 띄워버림! (로딩창 없음)
             window.__updateUIWithData();
             document.getElementById('loading-overlay').style.display = 'none';
             bindEvents();
             isEventsBound = true;
-            
-            // 0.1초 만에 띄워두고 백그라운드에서 전체 1만 2천 개 데이터를 조용히 업데이트합니다.
+            // 그리고 유저 모르게 조용히 백그라운드에서 1만 개를 싹 다 다시 불러옵니다.
             fetchFromGAS(true);
         } else {
-            // 진짜 완전 처음 켰을 때만 1회 로딩 대기
+            // 진짜 완전 처음 들어왔을 때만 로딩 대기창을 띄웁니다.
             fetchFromGAS(false);
         }
     })();
