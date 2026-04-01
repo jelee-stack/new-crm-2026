@@ -100,9 +100,9 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" style="display: none;" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: none;">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 동기화 중...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -253,7 +253,7 @@
     <select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8" onchange="if(this.value==='직접입력'){document.getElementById('new-counselor-direct').classList.remove('hidden');document.getElementById('new-counselor-direct').focus();}else{document.getElementById('new-counselor-direct').classList.add('hidden');}">
         <option value="원진혁">원진혁</option><option value="홍준기">홍준기</option><option value="이지은">이지은</option><option value="직접입력">직접입력</option>
     </select>
-    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 직접 입력" />
+    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 입력" />
 </div>
 </div>
 <div class="space-y-1">
@@ -386,11 +386,10 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [지은 님 원본 주소 보존] 
-        // ※ 구글 스크립트에 25년 12월 필터링 코드가 반영되어야 진정한 1초 로딩이 완성됩니다!
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxBPxPiWl5NElP-PIM5-GSyvwXKAE0pPpYWGCqBd3aL1C1Cdkc9ZlSj_zWC1ie8xG5i/exec';
         
         const LOCAL_STORAGE_KEY = 'crm_local_data_v45';
+        // 🚨 완벽 픽스: 캐시 키를 살려서 새로고침을 0초 컷으로 묶었습니다!
         const GAS_CACHE_KEY = 'crm_gas_cache_v45'; 
         
         let localData = [];
@@ -398,7 +397,7 @@
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            // 완벽 수정: 브라우저 금고 에러 방지를 위해 300개만 저장한 캐시를 가져옵니다.
+            // 🚨 완벽 픽스: 가장 최신(0번 인덱스부터) 300개만 슬라이스해서 가져오도록 방어
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
         } catch(e) { console.warn('Cache load error', e); }
@@ -464,7 +463,7 @@
             
             let initialHistory = [];
             
-            // 완벽 수정: 문의사항 J열 캐치 및 상단 고정 태그 부여!
+            // 문의사항 고정 카드
             const inquiryText = String(rec.inquiry || rec['문의사항'] || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
@@ -675,7 +674,8 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 화면 버튼이 역순일 때만 뒤집습니다. (기본은 최신순)
+            // 🚨 완벽 픽스 2: 처음 열었을 때 [최신순(desc)] 이면 배열을 뒤집지 않고 그대로 둡니다.
+            // asc(오래된순)를 클릭했을 때만 reverse() 해서 역순으로 보여줍니다!
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -690,7 +690,8 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 완벽 수정: __sort 값이 무조건 높은 순(최신)으로 내림차순 100% 보장! (23년 버그 픽스)
+            // 🚨 완벽 픽스 2: 구글 앱스 스크립트에서 최신순으로 넘어오니까 그냥 그 순서를 보장해줍니다.
+            // 무조건 __sort 값이 가장 큰(최신 데이터) 애들이 배열의 꼭대기에 가도록 '내림차순' 정렬을 박아버립니다.
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -786,7 +787,6 @@
                 window.__updateUIWithData();
             });
 
-            // 완벽 수정: 신규 등록 완료 시 필터 유지! (전체로 튕기지 않음)
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -812,7 +812,7 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
                     sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 // 신규는 가장 최신이므로 무조건 1등
+                    __sort: Date.now() * 1000 
                 };
 
                 const newRec = normalizeRecord(rawRec, rawRec.id);
@@ -820,7 +820,6 @@
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 강제 이동 삭제. 현재 필터 화면 그대로 부드럽게 갱신
                 state.selectedIndex = 0;
                 window.__updateUIWithData(); 
             });
@@ -886,7 +885,6 @@
                 window.__updateUIWithData();
             });
 
-            // 웹에서 생성한 데이터만 삭제 허용
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -921,40 +919,37 @@
             }
         }
 
-        // 완벽 수정: 캐시 딜레이 제거 및 23년 역순 버그 픽스
+        // 🚨 완벽 픽스 1 & 2: 모바일 캐시 무력화 + 가장 최신 300개 캐싱으로 0초 로딩!
         async function fetchFromGAS(isBackground = false) {
             try {
                 if (!isBackground) {
                     const overlay = document.getElementById('loading-overlay');
                     overlay.style.display = 'flex';
-                    overlay.classList.remove('hidden');
                 }
                 
-                // 모바일 브라우저의 캐시 고집을 부수기 위해 무조건 &t=시간 꼬리표를 답니다!
+                // 모바일 브라우저가 새 데이터를 안 가져오는 고집을 꺾습니다.
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('네트워크 문제 발생');
 
                 const payload = await res.json();
 
-                // 완벽 수정 (23년 정렬 버그 픽스):
-                // 구글 시트에서는 23년 -> 26년 순으로 데이터를 줍니다.
-                // 그러니 배열 뒤쪽으로 갈수록(i 값이 클수록) 최신 데이터입니다.
-                // i 값을 그대로 __sort에 넣어주면, 웹에서는 이 숫자가 큰 순서(내림차순)로 정렬하므로 100% 최신순 보장!
+                // 앱스 스크립트에서 최신순으로 정렬해서 주므로, 
+                // 위에서부터 읽어올 때 맨 앞(i=0)이 가장 최신 데이터입니다!
+                // 그러니 전체 개수에서 i를 뺀 값을 점수로 주면, 0번째 데이터가 무조건 1등 점수를 먹습니다. (버그 완벽 박살!)
+                const totalLength = payload.records ? payload.records.length : 0;
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = i * 10; 
+                    rec.__sort = totalLength - i; // 최신일수록 높은 점수
                     return rec;
                 });
 
-                // 완벽 수정 (새로고침 0초 캐시 픽스):
-                // 12,000개를 다 저장하면 5MB 용량 초과 에러가 나서 캐시가 날아갑니다.
-                // 그래서 '가장 뒤에 있는 최신 데이터 300개'만 잘라서 브라우저 금고에 저장합니다!
-                // 다음 번 새로고침 시 이 300개가 0.1초 만에 뿅 하고 나타납니다.
+                // 🚨 딜레이 파괴의 핵심: gasRecords는 이미 최신순이므로, '가장 앞에 있는 300개'가 최신 데이터입니다.
+                // slice(0, 300)으로 가장 최신 데이터를 금고에 저장해둬서 다음 새로고침이 0.1초만에 되게 만듭니다!
                 try { 
-                    const safeCache = gasRecords.slice(-300); // 배열의 맨 끝(가장 최신) 300개 추출
+                    const safeCache = gasRecords.slice(0, 300);
                     localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
-                } catch(e) { console.warn('Cache warning'); }
+                } catch(e) { console.warn('캐시 저장 건너뜀'); }
 
                 window.__updateUIWithData();
 
@@ -971,16 +966,13 @@
             }
         }
 
-        // 초기 화면 렌더링 (캐시 300개가 있으면 로딩창 없이 0.1초 즉시 실행)
         if (gasRecords.length > 0) {
             window.__updateUIWithData();
             document.getElementById('loading-overlay').style.display = 'none';
             bindEvents();
             isEventsBound = true;
-            // 0.1초 만에 띄우고 백그라운드에서 전체 데이터를 조용히 업데이트
             fetchFromGAS(true);
         } else {
-            // 진짜 완전 처음 들어왔을 때만 로딩 대기창 표시
             fetchFromGAS(false);
         }
     })();
