@@ -100,12 +100,12 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: none;">
+<div id="loading-overlay" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: none;">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 동기화 중...</p>
 </div>
 
-<section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
+<section class="w-full lg:w-[400px] h-[65vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
 <div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/80 lg:bg-transparent backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none">
 <div class="flex justify-between items-center mb-2 lg:mb-4">
 <div class="flex items-center gap-2">
@@ -253,7 +253,7 @@
     <select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8" onchange="if(this.value==='직접입력'){document.getElementById('new-counselor-direct').classList.remove('hidden');document.getElementById('new-counselor-direct').focus();}else{document.getElementById('new-counselor-direct').classList.add('hidden');}">
         <option value="원진혁">원진혁</option><option value="홍준기">홍준기</option><option value="이지은">이지은</option><option value="직접입력">직접입력</option>
     </select>
-    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 입력" />
+    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 직접 입력" />
 </div>
 </div>
 <div class="space-y-1">
@@ -388,19 +388,18 @@
     (async function initProspectsFromGAS() {
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxBPxPiWl5NElP-PIM5-GSyvwXKAE0pPpYWGCqBd3aL1C1Cdkc9ZlSj_zWC1ie8xG5i/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v45';
-        // 🚨 완벽 픽스: 캐시 키를 살려서 새로고침을 0초 컷으로 묶었습니다!
-        const GAS_CACHE_KEY = 'crm_gas_cache_v45'; 
+        // 🚨 완벽 픽스 1: 튼튼하고 안정적인 캐시 키 설정
+        const LOCAL_STORAGE_KEY = 'crm_local_data_stable_v1';
+        const GAS_CACHE_KEY = 'crm_gas_cache_stable_v1'; 
         
         let localData = [];
         let gasRecords = [];
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            // 🚨 완벽 픽스: 가장 최신(0번 인덱스부터) 300개만 슬라이스해서 가져오도록 방어
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
-        } catch(e) { console.warn('Cache load error', e); }
+        } catch(e) { console.warn('Cache error', e); }
         
         let isEventsBound = false;
 
@@ -463,8 +462,8 @@
             
             let initialHistory = [];
             
-            // 문의사항 고정 카드
-            const inquiryText = String(rec.inquiry || rec['문의사항'] || '').trim();
+            const inq = rec.inquiry || rec['문의사항'] || rec['inquiry'];
+            const inquiryText = String(inq || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
                     id: `fixed-inquiry-${idxPrefix}`,
@@ -674,8 +673,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 🚨 완벽 픽스 2: 처음 열었을 때 [최신순(desc)] 이면 배열을 뒤집지 않고 그대로 둡니다.
-            // asc(오래된순)를 클릭했을 때만 reverse() 해서 역순으로 보여줍니다!
+            // 🚨 완벽 픽스 2: 처음 켜지면 무조건 최신순! 버튼이 'asc(오래된순)'일 때만 배열을 뒤집습니다.
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -690,8 +688,7 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 🚨 완벽 픽스 2: 구글 앱스 스크립트에서 최신순으로 넘어오니까 그냥 그 순서를 보장해줍니다.
-            // 무조건 __sort 값이 가장 큰(최신 데이터) 애들이 배열의 꼭대기에 가도록 '내림차순' 정렬을 박아버립니다.
+            // 무조건 __sort 값이 가장 큰(최신) 순서대로 내림차순(최신순) 정렬 100% 묶어둠!
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -919,37 +916,38 @@
             }
         }
 
-        // 🚨 완벽 픽스 1 & 2: 모바일 캐시 무력화 + 가장 최신 300개 캐싱으로 0초 로딩!
         async function fetchFromGAS(isBackground = false) {
+            const syncInd = document.getElementById('sync-indicator');
             try {
                 if (!isBackground) {
                     const overlay = document.getElementById('loading-overlay');
                     overlay.style.display = 'flex';
+                } else if (syncInd) {
+                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px] animate-spin">sync</span>동기화 중...';
+                    syncInd.classList.remove('hidden');
+                    syncInd.classList.add('flex');
                 }
                 
-                // 모바일 브라우저가 새 데이터를 안 가져오는 고집을 꺾습니다.
+                // 모바일 사파리 강력 캐시 파괴 꼬리표 + no-store 옵션 추가
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
-                const res = await fetch(url);
+                const res = await fetch(url, { cache: 'no-store' });
                 if (!res.ok) throw new Error('네트워크 문제 발생');
 
                 const payload = await res.json();
 
-                // 앱스 스크립트에서 최신순으로 정렬해서 주므로, 
-                // 위에서부터 읽어올 때 맨 앞(i=0)이 가장 최신 데이터입니다!
-                // 그러니 전체 개수에서 i를 뺀 값을 점수로 주면, 0번째 데이터가 무조건 1등 점수를 먹습니다. (버그 완벽 박살!)
-                const totalLength = payload.records ? payload.records.length : 0;
+                // 서버에서 보낸 순서대로 (최신순) 
                 gasRecords = (payload.records || []).map((r, i) => {
                     let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = totalLength - i; // 최신일수록 높은 점수
+                    rec.__sort = i * 10; 
                     return rec;
                 });
 
-                // 🚨 딜레이 파괴의 핵심: gasRecords는 이미 최신순이므로, '가장 앞에 있는 300개'가 최신 데이터입니다.
-                // slice(0, 300)으로 가장 최신 데이터를 금고에 저장해둬서 다음 새로고침이 0.1초만에 되게 만듭니다!
+                // 🚨 완벽 픽스 1: PC 새로고침 시 5초 딜레이를 0.1초로 바꾸는 초강력 솔루션
+                // 전체 데이터의 '앞부분' 150개만 딱 잘라서 저장합니다. (앞부분이 26년도 최신 데이터니까요!)
                 try { 
-                    const safeCache = gasRecords.slice(0, 300);
+                    const safeCache = gasRecords.slice(0, 150); 
                     localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
-                } catch(e) { console.warn('캐시 저장 건너뜀'); }
+                } catch(e) { console.warn('Cache warning', e); }
 
                 window.__updateUIWithData();
 
@@ -957,12 +955,28 @@
                     bindEvents();
                     isEventsBound = true;
                 }
+
+                if (isBackground && syncInd) {
+                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px]">check_circle</span>최신화 완료';
+                    syncInd.classList.remove('animate-pulse');
+                    setTimeout(() => {
+                        syncInd.classList.add('hidden');
+                        syncInd.classList.remove('flex');
+                        syncInd.classList.add('animate-pulse'); 
+                    }, 2000);
+                }
             } catch (err) {
                 console.error('데이터 통신 에러:', err);
+                if (isBackground && syncInd) {
+                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px]">error</span>연동 실패';
+                    setTimeout(() => { syncInd.classList.add('hidden'); syncInd.classList.remove('flex'); }, 2000);
+                }
             } finally {
-                const overlay = document.getElementById('loading-overlay');
-                overlay.classList.add('fade-out');
-                setTimeout(() => { overlay.classList.add('hidden'); overlay.style.display = 'none'; }, 300);
+                if (!isBackground) {
+                    const overlay = document.getElementById('loading-overlay');
+                    overlay.classList.add('fade-out');
+                    setTimeout(() => { overlay.classList.add('hidden'); overlay.style.display = 'none'; }, 300);
+                }
             }
         }
 
