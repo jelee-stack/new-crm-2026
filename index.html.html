@@ -332,6 +332,7 @@
 </div>
 
 <script>
+    // 완벽 수정: 신규 등록 폼 싹 비우기
     window.openNewCustomerModal = function() {
         const form = document.getElementById('new-customer-form');
         if(form) form.reset();
@@ -386,19 +387,21 @@
     };
 
     (async function initProspectsFromGAS() {
+        // [절대 보존] 지은 님 원본 통신 주소 
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxBPxPiWl5NElP-PIM5-GSyvwXKAE0pPpYWGCqBd3aL1C1Cdkc9ZlSj_zWC1ie8xG5i/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v45';
-        const GAS_CACHE_KEY = 'crm_gas_cache_v45'; 
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v51';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v51'; 
         
         let localData = [];
         let gasRecords = [];
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            // 완벽 픽스 1. 캐시 불러오기 안정화
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
-        } catch(e) { console.warn('Cache load error', e); }
+        } catch(e) { console.warn('Cache error', e); }
         
         let isEventsBound = false;
 
@@ -454,6 +457,22 @@
             return v;
         }
 
+        // 🚨 완벽 픽스 2. 날짜 텍스트를 해독해서 '절대 정렬 점수'를 만드는 기능!
+        function getSortScore(dateStr, yearToken, monthToken) {
+            if (!dateStr || dateStr === '-' || dateStr === '날짜 미상' || dateStr === '웹등록') {
+                return (parseInt(yearToken || 0, 10) * 10000) + (parseInt(monthToken || 0, 10) * 100);
+            }
+            const nums = dateStr.match(/\d+/g);
+            if (nums && nums.length >= 2) {
+                let y = parseInt(nums[0], 10);
+                if (y < 100) y += 2000;
+                let m = parseInt(nums[1], 10);
+                let d = nums.length >= 3 ? parseInt(nums[2], 10) : 1;
+                return (y * 10000) + (m * 100) + d; // 2026.04.01 -> 20260401점 (절대 안 꼬임)
+            }
+            return 0;
+        }
+
         function normalizeRecord(rec, idxPrefix) {
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
@@ -461,6 +480,7 @@
             
             let initialHistory = [];
             
+            // J열 문의사항 상단 고정!
             const inq = rec.inquiry || rec['문의사항'] || rec['inquiry'];
             const inquiryText = String(inq || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
@@ -473,6 +493,7 @@
                 });
             }
 
+            // L열 상담내용
             if (rec.consultationContent && String(rec.consultationContent).trim() !== '') {
                 initialHistory.push({
                     id: `hist-base-${idxPrefix}`,
@@ -482,8 +503,12 @@
                 });
             }
 
+            // 날짜 기반 절대 정렬 점수 부여!
+            let sortScore = getSortScore(rawDateStr, rec.sheetYear || currentYear, rec.sheetMonth || currentMonth);
+
             return {
-                id: rec.id || `r-${idxPrefix}`,
+                // 테스트 시 동일 이름/번호/날짜를 써도 합쳐지지 않도록 안전장치 추가
+                id: rec.id || `r-${idxPrefix}-${Math.random().toString(36).substr(2, 5)}`,
                 name: name || phone || '-',
                 phone: phone,
                 contractStatus: rec.contractStatus ? rec.contractStatus.trim() : '',
@@ -499,7 +524,7 @@
                 isNew: rec.isNew || false,
                 isCustom: rec.isCustom || false,
                 consultationHistory: rec.consultationHistory || initialHistory,
-                __sort: rec.__sort || 0 
+                __sort: sortScore 
             };
         }
 
@@ -672,6 +697,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
+            // 🚨 완벽 픽스: 버튼이 'asc(오래된순)'일 때만 배열을 뒤집습니다! (기본은 내림차순 최신순)
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -686,8 +712,8 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 🚨 완벽 픽스 2: 무조건 정렬 점수(__sort)가 가장 큰 순서대로 먼저 나열시킵니다!
-            // 이렇게 하면 버튼 안 눌러도 켜자마자 무조건 최신순(내림차순)으로 깔끔하게 나옵니다.
+            // 🚨 완벽 픽스 2. 날짜 기반(__sort 점수) 무조건 내림차순 정렬!!
+            // 구글에서 넘어온 순서 다 무시하고, 날짜가 크면 무조건 1등으로 박아버립니다. (23년 버그 타파)
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -794,6 +820,9 @@
                     counselorVal = document.getElementById('new-counselor-direct').value || '미상';
                 }
                 
+                // 날짜 점수를 생성해서 __sort에 넣습니다. + 0.5를 줘서 동시간대 구글시트 데이터보다 최상단에 뜨게 합니다.
+                let customSortScore = getSortScore(todayStr.replace(/-/g, '.'), y, m) + 0.5;
+
                 const rawRec = {
                     id: `custom_${Date.now()}`,
                     name: document.getElementById('new-name').value,
@@ -808,10 +837,13 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
                     sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 
+                    __sort: customSortScore // 정확한 날짜 기반 점수 적용!
                 };
 
                 const newRec = normalizeRecord(rawRec, rawRec.id);
+                // 덮어씌워서 sort 값을 강제로 지정
+                newRec.__sort = customSortScore;
+                
                 window.__saveRecordMutation(newRec);
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
@@ -876,6 +908,11 @@
                 record.firstGuideAmount = originalRecord.firstGuideAmount;
                 record.contractStatus = originalRecord.contractStatus;
 
+                // 수정한 날짜에 맞게 점수 재계산
+                const [y, m] = record.dbEntryDateRaw.split(/[\.\-]/);
+                record.__sort = getSortScore(record.dbEntryDateRaw, y, m);
+                originalRecord.__sort = record.__sort;
+
                 window.__saveRecordMutation(record);
                 document.getElementById('edit-customer-modal').classList.add('hidden');
                 window.__updateUIWithData();
@@ -915,43 +952,34 @@
             }
         }
 
+        // 🚨 완벽 픽스 1. 캐시 딜레이 박살내는 가장 완벽한 백그라운드 연동!
         async function fetchFromGAS(isBackground = false) {
-            const syncInd = document.getElementById('sync-indicator');
             try {
                 if (!isBackground) {
                     const overlay = document.getElementById('loading-overlay');
                     overlay.style.display = 'flex';
-                } else if (syncInd) {
-                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px] animate-spin">sync</span>동기화 중...';
-                    syncInd.classList.remove('hidden');
-                    syncInd.classList.add('flex');
                 }
                 
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
-                const res = await fetch(url, { cache: 'no-store' });
-                if (!res.ok) throw new Error('네트워크 에러');
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('네트워크 문제 발생');
 
                 const payload = await res.json();
-                const totalLength = payload.records ? payload.records.length : 0;
 
-                // 🚨 완벽 픽스 2: 순번 꼬임 박살! 
-                // 구글 시트는 가장 위(옛날)부터 아래(최신)로 읽어옵니다.
-                // 그러니 가장 나중에 오는(i가 제일 큰) 놈한테 가장 큰 점수를 줘야 최신순이 됩니다!
-                // (totalLength - i) * 10 으로 주면 0번(옛날)이 제일 큰 점수를 받게 되어 역순 버그가 났던 겁니다.
-                gasRecords = (payload.records || []).map((r, i) => {
-                    let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = i * 10; // 인덱스가 클수록(최신) 점수 팍팍 줍니다!
-                    return rec;
-                });
+                // 데이터를 정규화합니다.
+                let tempRecords = (payload.records || []).map((r, i) => normalizeRecord(r, `gas_${i}`));
+                
+                // 완벽 픽스: 정규화 과정에서 날짜로 만든 점수로 무조건 내림차순(최신순) 정렬을 끝냅니다!
+                tempRecords.sort((a, b) => b.__sort - a.__sort);
+                gasRecords = tempRecords;
 
-                // 🚨 완벽 픽스 1: 15초 딜레이(캐시 증발) 박살!
-                // slice(-300)을 쓰지 않고 가장 점수가 높은(최신) 애들만 안전하게 잘라서 저장합니다.
-                // gasRecords는 0번이 가장 오래된 것, 끝부분이 최신인 상태이므로
-                // 제일 끝부분에서 300개를 가져와야 최신 데이터를 캐싱할 수 있습니다!
+                // 🚨 지옥 딜레이 해결의 코어: 
+                // 이제 gasRecords의 0번 인덱스가 무조건 '최신 1등'입니다!
+                // 여기서 깔끔하게 앞부분 300개만 딱 잘라 저장하면 에러 없이 0.1초 로딩 캐시가 완성됩니다!
                 try { 
-                    const safeCache = gasRecords.slice(Math.max(gasRecords.length - 300, 0)); 
+                    const safeCache = gasRecords.slice(0, 300); 
                     localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
-                } catch(e) { console.warn('Cache warning', e); }
+                } catch(e) { console.warn('Cache warning'); }
 
                 window.__updateUIWithData();
 
@@ -960,27 +988,12 @@
                     isEventsBound = true;
                 }
 
-                if (isBackground && syncInd) {
-                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px]">check_circle</span>최신화 완료';
-                    syncInd.classList.remove('animate-pulse');
-                    setTimeout(() => {
-                        syncInd.classList.add('hidden');
-                        syncInd.classList.remove('flex');
-                        syncInd.classList.add('animate-pulse'); 
-                    }, 2000);
-                }
             } catch (err) {
                 console.error('데이터 통신 에러:', err);
-                if (isBackground && syncInd) {
-                    syncInd.innerHTML = '<span class="material-symbols-outlined text-[12px]">error</span>연동 실패';
-                    setTimeout(() => { syncInd.classList.add('hidden'); syncInd.classList.remove('flex'); }, 2000);
-                }
             } finally {
-                if (!isBackground) {
-                    const overlay = document.getElementById('loading-overlay');
-                    overlay.classList.add('fade-out');
-                    setTimeout(() => { overlay.classList.add('hidden'); overlay.style.display = 'none'; }, 300);
-                }
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.add('fade-out');
+                setTimeout(() => { overlay.classList.add('hidden'); overlay.style.display = 'none'; }, 300);
             }
         }
 
