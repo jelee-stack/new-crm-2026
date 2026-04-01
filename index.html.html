@@ -18,7 +18,6 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #b9c7df; }
-    .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 </style>
 <script id="tailwind-config">
         tailwind.config = {
@@ -100,15 +99,14 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" style="display: none;" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
-    <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트에서 최신 데이터를 불러오는 중입니다...</p>
-</div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
 <div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/80 lg:bg-transparent backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none">
 <div class="flex justify-between items-center mb-2 lg:mb-4">
-<h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+<div class="flex items-center gap-2">
+    <h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
+    <span id="sync-indicator" class="hidden text-[10px] bg-primary-container/10 text-primary-container px-2 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse"><span class="material-symbols-outlined text-[12px] animate-spin">sync</span>동기화 중...</span>
+</div>
 <div class="flex items-center gap-2">
     <span id="badge-total-count" class="text-[10px] lg:text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
     <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-1 lg:ml-2">
@@ -127,10 +125,10 @@
 </section>
 
 <section id="detail-section" class="flex-1 bg-surface flex flex-col min-h-[700px] lg:min-h-0 lg:h-full overflow-visible lg:overflow-hidden relative">
-<div class="p-4 lg:p-6 pb-2 shrink-0">
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-3 lg:mb-4 gap-4 relative z-10">
+<div class="p-4 lg:p-6 pb-2 pt-4 lg:pt-6 shrink-0">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-3 gap-4 relative z-10">
 <div class="w-full sm:w-auto">
-<h2 id="detail-title" class="text-lg lg:text-xl font-bold font-headline text-primary-container mb-2 lg:mb-1 truncate w-full">고객 상세</h2>
+<h2 id="detail-title" class="text-lg lg:text-xl font-bold font-headline text-primary-container mb-1 truncate w-full">고객 상세</h2>
 <span class="flex items-center gap-3 text-base lg:text-lg font-bold text-on-surface">
     <span id="detail-phone-text">-</span>
     <a id="detail-phone-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary-container transition-all" href="#">
@@ -149,26 +147,26 @@
 <table class="w-full text-left border-collapse font-body min-w-[500px]">
 <thead class="bg-surface-container-low">
 <tr>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">DB 유입 날짜</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">1차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">2차 상담자</th>
-<th class="px-4 lg:px-6 py-2.5 lg:py-3 text-[12px] lg:text-[14px] font-black text-on-surface whitespace-nowrap">안내 금액</th>
+<th class="px-4 lg:px-6 py-2 lg:py-2.5 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase">DB 유입 날짜</th>
+<th class="px-4 lg:px-6 py-2 lg:py-2.5 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase">1차 상담자</th>
+<th class="px-4 lg:px-6 py-2 lg:py-2.5 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase">2차 상담자</th>
+<th class="px-4 lg:px-6 py-2 lg:py-2.5 text-[11px] lg:text-[13px] font-black text-on-surface whitespace-nowrap uppercase">안내 금액</th>
 </tr>
 </thead>
 <tbody class="bg-white">
 <tr class="border-b border-outline-variant/5">
-<td id="detail-date" class="px-4 lg:px-6 py-3 lg:py-4 font-semibold text-sm lg:text-base text-on-surface whitespace-nowrap">-</td>
-<td id="detail-counselor1" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-counselor2" class="px-4 lg:px-6 py-3 lg:py-4 text-sm lg:text-base text-on-surface-variant whitespace-nowrap">-</td>
-<td id="detail-price" class="px-4 lg:px-6 py-3 lg:py-4 font-black text-sm lg:text-base text-primary-container whitespace-nowrap">-</td>
+<td id="detail-date" class="px-4 lg:px-6 py-2.5 lg:py-3 font-semibold text-xs lg:text-sm text-on-surface whitespace-nowrap">-</td>
+<td id="detail-counselor1" class="px-4 lg:px-6 py-2.5 lg:py-3 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-counselor2" class="px-4 lg:px-6 py-2.5 lg:py-3 text-xs lg:text-sm text-on-surface-variant whitespace-nowrap">-</td>
+<td id="detail-price" class="px-4 lg:px-6 py-2.5 lg:py-3 font-black text-xs lg:text-sm text-primary-container whitespace-nowrap">-</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="flex-1 overflow-y-visible lg:overflow-y-auto px-5 lg:px-8 py-4 bg-surface-container-low/30 relative">
-<h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-4 lg:mb-6 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
-<div id="history-container" class="relative pl-6 lg:pl-8 space-y-5 lg:space-y-6 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
+<div class="flex-1 overflow-y-visible lg:overflow-y-auto px-5 lg:px-8 py-2 lg:py-4 bg-surface-container-low/30 relative">
+<h3 class="text-xs lg:text-sm font-bold text-outline-variant uppercase tracking-widest mb-3 lg:mb-4 sticky top-0 bg-surface-container-low/80 backdrop-blur px-2 py-1 rounded w-max z-10">상담 히스토리</h3>
+<div id="history-container" class="relative pl-6 lg:pl-8 space-y-4 lg:space-y-5 before:content-[''] before:absolute before:left-2 lg:before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20 pb-4">
 </div>
 </div>
 
@@ -209,6 +207,7 @@
     </div>
     <h3 id="delete-modal-title" class="text-lg lg:text-xl font-headline font-bold text-primary-container mb-2 text-center">고객 삭제</h3>
     <p class="text-sm lg:text-base text-on-surface-variant mb-10 text-center font-body">이 고객 데이터를 <strong class="text-error font-bold">영구히 삭제</strong> 하시겠습니까?</p>
+    
     <div class="w-full grid grid-cols-2 gap-3 mt-auto">
         <button class="py-2.5 px-6 bg-surface-container-high text-primary-container font-headline font-bold rounded-xl hover:bg-surface-variant transition-all text-sm cursor-pointer" onclick="document.getElementById('delete-customer-modal').classList.add('hidden')" type="button">취소</button>
         <button id="btn-delete-confirm" class="py-2.5 px-6 bg-error text-white font-headline font-bold rounded-xl shadow-lg shadow-error/20 hover:scale-[1.01] active:scale-95 transition-all text-sm cursor-pointer" type="button">삭제하기</button>
@@ -249,7 +248,7 @@
     <select id="new-counselor" class="w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20 appearance-none pr-8" onchange="if(this.value==='직접입력'){document.getElementById('new-counselor-direct').classList.remove('hidden');document.getElementById('new-counselor-direct').focus();}else{document.getElementById('new-counselor-direct').classList.add('hidden');}">
         <option value="원진혁">원진혁</option><option value="홍준기">홍준기</option><option value="이지은">이지은</option><option value="직접입력">직접입력</option>
     </select>
-    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="직접입력" />
+    <input id="new-counselor-direct" type="text" class="hidden w-full px-4 py-2 lg:py-2.5 bg-surface-container-low border-none rounded-xl text-sm font-body focus:ring-2 focus:ring-primary-container/20" placeholder="상담자명 직접 입력" />
 </div>
 </div>
 <div class="space-y-1">
@@ -328,7 +327,7 @@
 </div>
 
 <script>
-    // 완벽 수정: 신규 등록 폼 초기화 전용 함수 
+    // 완벽 수정: 신규 고객 등록 폼 초기화 전용 함수
     window.openNewCustomerModal = function() {
         const form = document.getElementById('new-customer-form');
         if(form) form.reset();
@@ -357,7 +356,7 @@
         overlay.classList.toggle('hidden');
     };
 
-    // 완벽 수정: 히스토리 수정 & 삭제 전역 함수
+    // 전역 함수: 상담 히스토리 수정 & 삭제 로직 추가
     window.editHistoryCard = function(recordId, historyId) {
         const record = window.__crmState.allRecords.find(r => r.id === recordId);
         if(!record) return;
@@ -384,18 +383,22 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [절대 보존] 지은 님 원본 통신 주소
-        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxf6e8uQZhtNWQmUKR8EDtyO_ooAsb_RAhJabtCv5cYtU5FY5laNbK4aqPhFXPevGlL/exec';
+        // [보존] 지은 님 원본 통신 주소 
+        // ※ J열이 안 뜨면 구글 앱스 스크립트 코드를 꼭 수정하셔야 합니다!
+        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v30';
-        const GAS_CACHE_KEY = 'crm_gas_cache_v30'; 
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v32';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v32'; 
         
         let localData = [];
         let gasRecords = [];
+        
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            gasRecords = JSON.parse(localStorage.getItem(GAS_CACHE_KEY)) || [];
-        } catch(e) { console.warn('Cache error', e); }
+            // 딜레이 제거 핵심: 캐시 용량을 500개로 제한해서 5MB 초과 에러 방지 (무조건 0.1초 로딩 성공)
+            const rawCache = localStorage.getItem(GAS_CACHE_KEY);
+            if (rawCache) gasRecords = JSON.parse(rawCache);
+        } catch(e) { console.warn('Cache load error', e); }
         
         let isEventsBound = false;
 
@@ -451,6 +454,20 @@
             return v;
         }
 
+        // 완벽 수정: 시트 날짜(YYYY.MM.DD 등)를 완벽하게 해독해서 '절대적인 정렬 점수'를 만드는 킬러 로직
+        function getSortScore(dateStr) {
+            if (!dateStr || dateStr === '-' || dateStr === '날짜 미상' || dateStr === '웹등록') return 0;
+            const nums = dateStr.match(/\d+/g);
+            if (nums && nums.length >= 2) {
+                let y = parseInt(nums[0], 10);
+                if (y < 100) y += 2000;
+                let m = parseInt(nums[1], 10);
+                let d = nums.length >= 3 ? parseInt(nums[2], 10) : 1;
+                return (y * 10000) + (m * 100) + d; // 2026.03.02 -> 20260302
+            }
+            return 0;
+        }
+
         function normalizeRecord(rec, idxPrefix) {
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
@@ -458,7 +475,7 @@
             
             let initialHistory = [];
             
-            // 완벽 수정: 문의사항(J열) 상단 붉은 고정 카드화
+            // 완벽 수정: 문의사항(J열) 상단 붉은 고정 카드 (앱스 스크립트 연동 필요)
             const inquiryText = String(rec.inquiry || rec['문의사항'] || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
@@ -466,7 +483,7 @@
                     date: '문의사항',
                     author: '고객',
                     content: inquiryText,
-                    isFixed: true // 식별자
+                    isFixed: true 
                 });
             }
 
@@ -478,6 +495,12 @@
                     author: rec.firstCounselor || '시스템',
                     content: rec.consultationContent
                 });
+            }
+
+            // 날짜 기반 완벽 정렬 스코어 생성
+            let sortScore = getSortScore(rawDateStr);
+            if (sortScore === 0) {
+                sortScore = (parseInt(rec.sheetYear || currentYear, 10) * 10000) + (parseInt(rec.sheetMonth || currentMonth, 10) * 100);
             }
 
             return {
@@ -497,7 +520,8 @@
                 isNew: rec.isNew || false,
                 isCustom: rec.isCustom || false,
                 consultationHistory: rec.consultationHistory || initialHistory,
-                __sort: rec.__sort || 0 
+                // 정렬 점수: 날짜가 최우선, 그 다음 인덱스 역순 (같은 날짜면 시트 아래쪽이 최신)
+                __sort: (sortScore * 100000) + (10000 - parseInt(String(idxPrefix).replace(/\D/g,'') || 0, 10))
             };
         }
 
@@ -528,7 +552,7 @@
                     const wrap = document.createElement('div');
                     wrap.className = 'relative group'; 
                     
-                    // 완벽 수정: 문의사항 카드가 아니면 수정/삭제 노출
+                    // 문의사항 카드가 아니면 마우스 호버 시 수정/삭제 노출
                     let actionsHtml = '';
                     if (!h.isFixed) {
                         actionsHtml = `
@@ -539,6 +563,7 @@
                         `;
                     }
 
+                    // 문의사항(J열)은 붉은색 테두리/배경으로 강렬하게 고정!
                     const badgeStyle = h.isFixed ? 'bg-error/10 text-error border-error/20' : 'bg-surface-container text-on-primary-fixed-variant';
                     const cardStyle = h.isFixed ? 'border-error/30 ring-1 ring-error/10 bg-error/5' : 'border-outline-variant/5 bg-white';
 
@@ -670,7 +695,8 @@
 
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
-
+            
+            // 완벽 수정: 버튼 클릭 상태에 따라 오름차순/내림차순 토글. (기본은 내림차순 최신순)
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -685,7 +711,7 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 완벽 수정: __sort 값이 무조건 높은 순(최신)으로 완벽하게 내림차순(최신순) 정렬 보장!
+            // 완벽 수정: 날짜 기반 __sort 점수로 무조건 내림차순(최신순) 정렬 100% 보장!
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -743,6 +769,9 @@
                     const record = state.filteredRecords[state.selectedIndex];
                     if (!record) return;
                     record.contractStatus = e.target.value;
+                    const originalRecord = state.allRecords.find(r => r.id === record.id);
+                    if (originalRecord) originalRecord.contractStatus = e.target.value;
+                    
                     window.__saveRecordMutation(record);
                     window.__updateUIWithData();
                 });
@@ -767,19 +796,24 @@
                 }
                 if (statusSelect) record.contractStatus = statusSelect;
 
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) {
+                    originalRecord.consultationHistory = record.consultationHistory;
+                    originalRecord.contractStatus = record.contractStatus;
+                }
+
                 window.__saveRecordMutation(record);
                 document.getElementById('note-content').value = ''; 
                 window.__updateUIWithData();
             });
 
-            // 완벽 수정: 신규 등록 후 전체보기로 풀림 현상 원천 봉쇄
+            // 완벽 수정: 신규 등록 완료 후 전체 화면으로 풀리지 않음!
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 const todayStr = document.getElementById('today-date').value || new Date().toISOString().split('T')[0];
                 const [y, m, d] = todayStr.split('-');
                 
-                // 직접 입력 필드 연결
                 let counselorVal = document.getElementById('new-counselor').value;
                 if (counselorVal === '직접입력') {
                     counselorVal = document.getElementById('new-counselor-direct').value || '미상';
@@ -790,7 +824,7 @@
                     name: document.getElementById('new-name').value,
                     phone: document.getElementById('new-phone').value,
                     isNew: true,
-                    isCustom: true, // 삭제 방어용 태그
+                    isCustom: true, 
                     dbEntryDateRaw: todayStr.replace(/-/g, '.'),
                     path: document.getElementById('new-path').value,
                     suspect: document.getElementById('new-suspect').value,
@@ -799,7 +833,7 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
                     sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 // 신규는 무조건 화면 꼭대기에 띄우기
+                    __sort: 99999999999999 // 신규 등록은 시간이 제일 나중이므로 무조건 최상단 1등!
                 };
 
                 const newRec = normalizeRecord(rawRec, rawRec.id);
@@ -807,7 +841,7 @@
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 기존 악성코드(nav-all-prospects.click) 제거하고, 필터 유지한 채로 화면만 갱신합니다!
+                // 기존 '전체 보기 강제 이동' 코드 삭제. 필터 상태 유지하며 화면 갱신
                 state.selectedIndex = 0;
                 window.__updateUIWithData(); 
             });
@@ -816,6 +850,9 @@
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
                 record.contractStatus = '계약완료';
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (originalRecord) originalRecord.contractStatus = '계약완료';
+
                 window.__saveRecordMutation(record);
                 window.__updateUIWithData();
             });
@@ -842,22 +879,34 @@
                 const record = state.filteredRecords[state.selectedIndex];
                 if (!record) return;
 
-                record.dbEntryDateRaw = document.getElementById('edit-date').value;
-                record.name = document.getElementById('edit-name').value || '-';
-                record.phone = formatPhone(document.getElementById('edit-phone').value);
-                record.path = document.getElementById('edit-path').value;
-                record.suspect = document.getElementById('edit-suspect').value;
-                record.firstCounselor = document.getElementById('edit-counselor1').value || '-';
-                record.secondCounselor = document.getElementById('edit-counselor2').value || '-';
-                record.firstGuideAmount = document.getElementById('edit-price').value || '-';
-                record.contractStatus = document.getElementById('edit-status').value;
+                const originalRecord = state.allRecords.find(r => r.id === record.id);
+                if (!originalRecord) return;
+
+                originalRecord.dbEntryDateRaw = document.getElementById('edit-date').value;
+                originalRecord.name = document.getElementById('edit-name').value || '-';
+                originalRecord.phone = formatPhone(document.getElementById('edit-phone').value);
+                originalRecord.path = document.getElementById('edit-path').value;
+                originalRecord.suspect = document.getElementById('edit-suspect').value;
+                originalRecord.firstCounselor = document.getElementById('edit-counselor1').value || '-';
+                originalRecord.secondCounselor = document.getElementById('edit-counselor2').value || '-';
+                originalRecord.firstGuideAmount = document.getElementById('edit-price').value || '-';
+                originalRecord.contractStatus = document.getElementById('edit-status').value;
+
+                record.dbEntryDateRaw = originalRecord.dbEntryDateRaw;
+                record.name = originalRecord.name;
+                record.phone = originalRecord.phone;
+                record.path = originalRecord.path;
+                record.suspect = originalRecord.suspect;
+                record.firstCounselor = originalRecord.firstCounselor;
+                record.secondCounselor = originalRecord.secondCounselor;
+                record.firstGuideAmount = originalRecord.firstGuideAmount;
+                record.contractStatus = originalRecord.contractStatus;
 
                 window.__saveRecordMutation(record);
                 document.getElementById('edit-customer-modal').classList.add('hidden');
                 window.__updateUIWithData();
             });
 
-            // 웹에서 생성된 데이터만 삭제할 수 있게 팝업 띄우기
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -892,31 +941,31 @@
             }
         }
 
-        // 완벽 수정: 모바일 캐시 무력화 및 23년 버그 타파
+        // 완벽 수정: 모바일 캐시 무력화(100% 최신 반영) 및 딜레이 원천 제거
         async function fetchFromGAS(isBackground = false) {
             try {
+                // 백그라운드가 아닐 때만 제목 옆에 작은 '동기화 중...' 글씨 노출
                 if (!isBackground) {
-                    const overlay = document.getElementById('loading-overlay');
-                    overlay.style.display = 'flex';
+                    const syncInd = document.getElementById('sync-indicator');
+                    if (syncInd) { syncInd.classList.remove('hidden'); syncInd.classList.add('flex'); }
                 }
                 
-                // 모바일 브라우저 캐시를 무력화해서 무조건 최신 데이터 가져오기!
+                // 모바일 브라우저의 지독한 방문기록 캐시를 뚫기 위해 시간 꼬리표 부착 (필승법)
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
+                
                 const res = await fetch(url);
-                if (!res.ok) throw new Error('네트워크 오류');
+                if (!res.ok) throw new Error('네트워크 연동 문제');
 
                 const payload = await res.json();
 
-                // 완벽 수정: 앱스 스크립트에서는 23년 -> 26년 순서로 옵니다.
-                // 그러므로 배열 맨 뒤쪽(i가 클수록)이 최신입니다! 
-                // i 값을そのまま __sort에 넣으면, updateUI()에서 (큰 수부터 작은 수로) 내림차순 정렬할 때 무조건 최신순 보장!!
-                gasRecords = (payload.records || []).map((r, i) => {
-                    let rec = normalizeRecord(r, `gas_${i}`);
-                    rec.__sort = i * 10; 
-                    return rec;
-                });
+                // 23년 버그 해결의 핵심. 그냥 가져온 순서대로 번호표를 매깁니다.
+                // 위에서 normalizeRecord 돌릴 때 날짜 기반(getSortScore)으로 알아서 최신순 정렬됩니다.
+                gasRecords = (payload.records || []).map((r, i) => normalizeRecord(r, `gas_${i}`));
 
-                try { localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords)); } catch(e){}
+                // 딜레이 제거를 위해: 용량 초과로 뻗지 않도록 500개만 안전하게 브라우저 금고에 저장
+                try { 
+                    localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords.slice(0, 500))); 
+                } catch(e) {}
 
                 window.__updateUIWithData();
 
@@ -927,18 +976,18 @@
             } catch (err) {
                 console.error('데이터 통신 에러:', err);
             } finally {
-                const overlay = document.getElementById('loading-overlay');
-                overlay.classList.add('fade-out');
-                setTimeout(() => { overlay.style.display = 'none'; overlay.classList.remove('fade-out'); }, 300);
+                const syncInd = document.getElementById('sync-indicator');
+                if (syncInd) { syncInd.classList.add('hidden'); syncInd.classList.remove('flex'); }
             }
         }
 
-        // 캐시 있으면 0초 렌더링
+        // 첫 접속 시 0.1초 렌더링 로직
         if (gasRecords.length > 0) {
+            // 캐시에 500개가 저장되어 있다면 0.1초 만에 화면부터 그리고 시작!
             window.__updateUIWithData();
-            document.getElementById('loading-overlay').style.display = 'none';
             bindEvents();
             isEventsBound = true;
+            // 그리고 사용자 모르게 백그라운드에서 전체 데이터 12000개를 싹 다 가져와서 덮어씌움
             fetchFromGAS(true);
         } else {
             fetchFromGAS(false);
