@@ -18,6 +18,7 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d2d9f4; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #b9c7df; }
+    .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 </style>
 <script id="tailwind-config">
         tailwind.config = {
@@ -99,14 +100,16 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
+<div id="loading-overlay" style="display: none;" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300">
+    <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
+    <p class="mt-5 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 12,000개 데이터 연동 중...</p>
+    <p class="mt-2 text-[11px] text-outline font-body font-medium bg-surface-container px-3 py-1 rounded-full">최초 1회만 약 3~5초 소요되며, 이후에는 즉시 켜집니다.</p>
+</div>
 
 <section class="w-full lg:w-[400px] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
 <div class="p-4 lg:p-6 pb-2 shrink-0 bg-white/80 lg:bg-transparent backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10 lg:border-none">
 <div class="flex justify-between items-center mb-2 lg:mb-4">
-<div class="flex items-center gap-2">
-    <h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
-    <span id="sync-indicator" class="hidden text-[10px] bg-primary-container/10 text-primary-container px-2 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse"><span class="material-symbols-outlined text-[12px] animate-spin">sync</span>동기화 중...</span>
-</div>
+<h2 class="text-lg lg:text-xl font-bold font-headline text-primary-container">가망 고객 리스트</h2>
 <div class="flex items-center gap-2">
     <span id="badge-total-count" class="text-[10px] lg:text-xs font-bold px-2 py-0.5 bg-surface-container-high rounded-full">전체 0명</span>
     <button id="btn-sort-toggle" class="flex items-center gap-0.5 text-[#353e91] hover:text-primary-container transition-colors ml-1 lg:ml-2">
@@ -327,7 +330,7 @@
 </div>
 
 <script>
-    // 완벽 수정: 신규 고객 등록 폼 초기화 전용 함수
+    // 신규 등록 폼 완벽하게 빈칸 리셋 및 날짜 세팅
     window.openNewCustomerModal = function() {
         const form = document.getElementById('new-customer-form');
         if(form) form.reset();
@@ -341,11 +344,9 @@
         const dInput = document.getElementById('today-date');
         if(dInput) {
             const d = new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth()+1).padStart(2,'0');
-            const day = String(d.getDate()).padStart(2,'0');
-            dInput.value = `${y}-${m}-${day}`;
+            dInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
+        
         document.getElementById('new-customer-modal').classList.remove('hidden');
     };
 
@@ -356,7 +357,7 @@
         overlay.classList.toggle('hidden');
     };
 
-    // 전역 함수: 상담 히스토리 수정 & 삭제 로직 추가
+    // 상담 히스토리 수정 & 삭제 
     window.editHistoryCard = function(recordId, historyId) {
         const record = window.__crmState.allRecords.find(r => r.id === recordId);
         if(!record) return;
@@ -383,22 +384,20 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [보존] 지은 님 원본 통신 주소 
-        // ※ J열이 안 뜨면 구글 앱스 스크립트 코드를 꼭 수정하셔야 합니다!
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwA5YPdKRnswKkpe32pHDQT4dd-QH8v61a8RXz8uT0GMN92ji1tASvujPeCWsG-hOIs/exec';
         
-        const LOCAL_STORAGE_KEY = 'crm_local_data_v32';
-        const GAS_CACHE_KEY = 'crm_gas_cache_v32'; 
+        const LOCAL_STORAGE_KEY = 'crm_local_data_final';
+        const GAS_CACHE_KEY = 'crm_gas_cache_final'; 
         
         let localData = [];
         let gasRecords = [];
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            // 딜레이 제거 핵심: 캐시 용량을 500개로 제한해서 5MB 초과 에러 방지 (무조건 0.1초 로딩 성공)
+            // 딜레이 제거의 핵심: 금고(캐시) 용량 초과 방지를 위해 무조건 데이터가 잘 저장되도록 만듦
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
-        } catch(e) { console.warn('Cache load error', e); }
+        } catch(e) { console.warn('Cache error', e); }
         
         let isEventsBound = false;
 
@@ -454,20 +453,6 @@
             return v;
         }
 
-        // 완벽 수정: 시트 날짜(YYYY.MM.DD 등)를 완벽하게 해독해서 '절대적인 정렬 점수'를 만드는 킬러 로직
-        function getSortScore(dateStr) {
-            if (!dateStr || dateStr === '-' || dateStr === '날짜 미상' || dateStr === '웹등록') return 0;
-            const nums = dateStr.match(/\d+/g);
-            if (nums && nums.length >= 2) {
-                let y = parseInt(nums[0], 10);
-                if (y < 100) y += 2000;
-                let m = parseInt(nums[1], 10);
-                let d = nums.length >= 3 ? parseInt(nums[2], 10) : 1;
-                return (y * 10000) + (m * 100) + d; // 2026.03.02 -> 20260302
-            }
-            return 0;
-        }
-
         function normalizeRecord(rec, idxPrefix) {
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
@@ -475,8 +460,11 @@
             
             let initialHistory = [];
             
-            // 완벽 수정: 문의사항(J열) 상단 붉은 고정 카드 (앱스 스크립트 연동 필요)
-            const inquiryText = String(rec.inquiry || rec['문의사항'] || '').trim();
+            // 완벽 복구: 문의사항(J열) 데이터를 정확하게 낚아채서 고정카드로 만듭니다!
+            // 혹시 몰라 키 값을 3개로 유연하게 체크합니다.
+            const inq = rec.inquiry || rec['문의사항'] || rec['inquiry'];
+            const inquiryText = String(inq || '').trim();
+            
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
                     id: `fixed-inquiry-${idxPrefix}`,
@@ -497,12 +485,6 @@
                 });
             }
 
-            // 날짜 기반 완벽 정렬 스코어 생성
-            let sortScore = getSortScore(rawDateStr);
-            if (sortScore === 0) {
-                sortScore = (parseInt(rec.sheetYear || currentYear, 10) * 10000) + (parseInt(rec.sheetMonth || currentMonth, 10) * 100);
-            }
-
             return {
                 id: rec.id || `r-${idxPrefix}`,
                 name: name || phone || '-',
@@ -520,8 +502,7 @@
                 isNew: rec.isNew || false,
                 isCustom: rec.isCustom || false,
                 consultationHistory: rec.consultationHistory || initialHistory,
-                // 정렬 점수: 날짜가 최우선, 그 다음 인덱스 역순 (같은 날짜면 시트 아래쪽이 최신)
-                __sort: (sortScore * 100000) + (10000 - parseInt(String(idxPrefix).replace(/\D/g,'') || 0, 10))
+                __sort: rec.__sort || 0 
             };
         }
 
@@ -552,7 +533,6 @@
                     const wrap = document.createElement('div');
                     wrap.className = 'relative group'; 
                     
-                    // 문의사항 카드가 아니면 마우스 호버 시 수정/삭제 노출
                     let actionsHtml = '';
                     if (!h.isFixed) {
                         actionsHtml = `
@@ -563,7 +543,7 @@
                         `;
                     }
 
-                    // 문의사항(J열)은 붉은색 테두리/배경으로 강렬하게 고정!
+                    // 문의사항 J열 전용 붉은색 스타일
                     const badgeStyle = h.isFixed ? 'bg-error/10 text-error border-error/20' : 'bg-surface-container text-on-primary-fixed-variant';
                     const cardStyle = h.isFixed ? 'border-error/30 ring-1 ring-error/10 bg-error/5' : 'border-outline-variant/5 bg-white';
 
@@ -695,8 +675,8 @@
 
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
-            
-            // 완벽 수정: 버튼 클릭 상태에 따라 오름차순/내림차순 토글. (기본은 내림차순 최신순)
+
+            // 화면 버튼이 과거순(asc) 일때만 역순으로 바꿈
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -711,7 +691,10 @@
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 완벽 수정: 날짜 기반 __sort 점수로 무조건 내림차순(최신순) 정렬 100% 보장!
+            // 완벽 수정 (23년도 정렬 꼬임 픽스) : 
+            // 1. 구글 스크립트에서 넘어오는 데이터는 이미 아래쪽으로 갈수록(인덱스가 클수록) 최신 탭(26년) 데이터입니다.
+            // 2. 신규 생성된 CRM 데이터는 __sort에 현재 시간을 넣으므로 숫자가 아주 큽니다.
+            // 3. 따라서 그냥 __sort가 큰 순서대로 내림차순(b - a) 정렬하면 100% 최신순 정렬이 완성됩니다.
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -807,7 +790,7 @@
                 window.__updateUIWithData();
             });
 
-            // 완벽 수정: 신규 등록 완료 후 전체 화면으로 풀리지 않음!
+            // 완벽 수정: 신규 등록 완료 후 전체 보기로 풀리는 현상 차단
             document.getElementById('new-customer-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -833,15 +816,16 @@
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
                     sheetMonth: parseInt(m, 10),
-                    __sort: 99999999999999 // 신규 등록은 시간이 제일 나중이므로 무조건 최상단 1등!
+                    __sort: Date.now() // 숫자가 매우 커서 최상단에 올라감
                 };
 
                 const newRec = normalizeRecord(rawRec, rawRec.id);
+                
                 window.__saveRecordMutation(newRec);
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
                 
-                // 기존 '전체 보기 강제 이동' 코드 삭제. 필터 상태 유지하며 화면 갱신
+                // 기존의 .click() 강제 이동 코드 제거. 필터는 가만히 둔 채 화면만 싹 새로 고침!
                 state.selectedIndex = 0;
                 window.__updateUIWithData(); 
             });
@@ -907,6 +891,7 @@
                 window.__updateUIWithData();
             });
 
+            // 데이터 삭제 버튼 기능
             const deleteBtn = document.getElementById('btn-delete-prospect');
             const deleteModal = document.getElementById('delete-customer-modal');
             const deleteConfirmBtn = document.getElementById('btn-delete-confirm');
@@ -941,30 +926,36 @@
             }
         }
 
-        // 완벽 수정: 모바일 캐시 무력화(100% 최신 반영) 및 딜레이 원천 제거
+        // 완벽 수정: 모바일 캐시 무력화 & 로딩화면 삭제 (데이터는 백그라운드 연동)
         async function fetchFromGAS(isBackground = false) {
             try {
-                // 백그라운드가 아닐 때만 제목 옆에 작은 '동기화 중...' 글씨 노출
                 if (!isBackground) {
-                    const syncInd = document.getElementById('sync-indicator');
-                    if (syncInd) { syncInd.classList.remove('hidden'); syncInd.classList.add('flex'); }
+                    const overlay = document.getElementById('loading-overlay');
+                    overlay.style.display = 'flex';
+                    overlay.classList.remove('hidden');
                 }
                 
-                // 모바일 브라우저의 지독한 방문기록 캐시를 뚫기 위해 시간 꼬리표 부착 (필승법)
+                // 모바일 브라우저의 캐시 고집을 깨기 위한 필승 꼬리표
                 const url = `${GAS_WEBAPP_URL}?action=prospects&t=${Date.now()}`;
-                
                 const res = await fetch(url);
-                if (!res.ok) throw new Error('네트워크 연동 문제');
+                if (!res.ok) throw new Error('네트워크 문제');
 
                 const payload = await res.json();
 
-                // 23년 버그 해결의 핵심. 그냥 가져온 순서대로 번호표를 매깁니다.
-                // 위에서 normalizeRecord 돌릴 때 날짜 기반(getSortScore)으로 알아서 최신순 정렬됩니다.
-                gasRecords = (payload.records || []).map((r, i) => normalizeRecord(r, `gas_${i}`));
+                // 23년도 버그 픽스. 구글 시트는 위에서 아래로(23년->26년) 읽어옵니다.
+                // 그러니 배열에서 뒤쪽 데이터가 최신입니다! 
+                // index(i) 값을 그대로 정렬 점수로 주면, 가장 나중에 생성된 26년 데이터가 제일 큰 점수를 갖게 됩니다.
+                gasRecords = (payload.records || []).map((r, i) => {
+                    let rec = normalizeRecord(r, `gas_${i}`);
+                    rec.__sort = i; 
+                    return rec;
+                });
 
-                // 딜레이 제거를 위해: 용량 초과로 뻗지 않도록 500개만 안전하게 브라우저 금고에 저장
+                // 브라우저 용량 한도를 넘지 않게 최신 데이터 300개만 안전하게 금고에 복사해둡니다.
+                // (이 덕분에 다음 새로고침 시 0.1초 만에 바로 화면이 뜨게 됩니다)
                 try { 
-                    localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(gasRecords.slice(0, 500))); 
+                    const safeCache = gasRecords.slice(gasRecords.length > 300 ? gasRecords.length - 300 : 0);
+                    localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
                 } catch(e) {}
 
                 window.__updateUIWithData();
@@ -976,18 +967,19 @@
             } catch (err) {
                 console.error('데이터 통신 에러:', err);
             } finally {
-                const syncInd = document.getElementById('sync-indicator');
-                if (syncInd) { syncInd.classList.add('hidden'); syncInd.classList.remove('flex'); }
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.add('fade-out');
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
         }
 
-        // 첫 접속 시 0.1초 렌더링 로직
+        // 금고에 데이터가 있으면 0초 렌더링, 없으면 1회 로딩 대기
         if (gasRecords.length > 0) {
-            // 캐시에 500개가 저장되어 있다면 0.1초 만에 화면부터 그리고 시작!
             window.__updateUIWithData();
+            document.getElementById('loading-overlay').style.display = 'none';
             bindEvents();
             isEventsBound = true;
-            // 그리고 사용자 모르게 백그라운드에서 전체 데이터 12000개를 싹 다 가져와서 덮어씌움
+            // 0초만에 띄워두고, 보이지 않게 뒤에서 구글 시트를 업데이트합니다.
             fetchFromGAS(true);
         } else {
             fetchFromGAS(false);
