@@ -100,9 +100,9 @@
 </header>
 
 <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative bg-surface">
-<div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: none;">
+<div id="loading-overlay" class="absolute inset-0 z-50 flex-col items-center justify-center bg-surface/90 backdrop-blur-sm transition-opacity duration-300" style="display: none;">
     <div class="w-12 h-12 border-4 border-surface-container-highest border-t-primary-container rounded-full animate-spin"></div>
-    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 최초 동기화 중...</p>
+    <p class="mt-4 text-base font-bold text-primary-container font-headline animate-pulse">구글 시트 데이터 동기화 중...</p>
 </div>
 
 <section class="w-full lg:w-[400px] h-[65vh] lg:h-full border-b lg:border-b-0 lg:border-r border-outline-variant/20 bg-surface flex flex-col shrink-0">
@@ -332,7 +332,7 @@
 </div>
 
 <script>
-    // 완벽 유지: 신규 폼 빈칸 초기화 + 오늘 날짜 지정 기능
+    // 완벽 유지: 폼 빈칸 초기화 + 날짜 세팅
     window.openNewCustomerModal = function() {
         const form = document.getElementById('new-customer-form');
         if(form) form.reset();
@@ -387,19 +387,17 @@
     };
 
     (async function initProspectsFromGAS() {
-        // [절대 보존] 지은 님 원본 주소 (이미 구글 스크립트에 25년 12월 컷 적용 완료됨)
+        // [절대 보존] 지은 님 원본 주소 (구글 앱스 스크립트는 이미 완벽한 상태)
         const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx5clhcrvGGoExolrTXFDwb0pkrHQGhmJwvtSSa0J_W8RpBh1cQgaVxN2wYx5a2Nbg7/exec';
         
-        // 🚨 완벽 픽스 2: 새로고침 0.1초 마법의 필수 열쇠. 절대 바꾸지 않는 고정 캐시 키!
-        const LOCAL_STORAGE_KEY = 'crm_local_data_final_stable';
-        const GAS_CACHE_KEY = 'crm_gas_cache_final_stable'; 
+        const LOCAL_STORAGE_KEY = 'crm_local_data_v99';
+        const GAS_CACHE_KEY = 'crm_gas_cache_v99'; 
         
         let localData = [];
         let gasRecords = [];
         
         try {
             localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            // 저장해 둔 '가장 최신 데이터 200개'를 즉시 로드!
             const rawCache = localStorage.getItem(GAS_CACHE_KEY);
             if (rawCache) gasRecords = JSON.parse(rawCache);
         } catch(e) { console.warn('Cache error', e); }
@@ -458,19 +456,21 @@
             return v;
         }
 
-        function normalizeRecord(rec, idxPrefix) {
+        // 🚨 완벽 수정 1: 날짜 계산 등 복잡한 수식을 모조리 폐기!!
+        // 구글 시트에서 넘겨주는 순서 그대로가 정답입니다. 
+        function normalizeRecord(rec, idxScore) {
             const rawDateStr = rec.dbEntryDateRaw ? String(rec.dbEntryDateRaw).trim() : '-';
             const phone = formatPhone(rec.phone || '');
             const name = String(rec.name || '').trim();
             
             let initialHistory = [];
             
-            // 완벽 유지: J열 문의사항 상단 붉은색 고정!
+            // 문의사항(J열) 상단 고정 
             const inq = rec.inquiry || rec['문의사항'] || rec['inquiry'];
             const inquiryText = String(inq || '').trim();
             if (inquiryText && inquiryText !== '-' && inquiryText !== 'undefined' && inquiryText !== 'null') {
                 initialHistory.push({
-                    id: `fixed-inquiry-${idxPrefix}`,
+                    id: `fixed-inquiry-${idxScore}`,
                     date: '문의사항',
                     author: '고객',
                     content: inquiryText,
@@ -478,10 +478,9 @@
                 });
             }
 
-            // L열 일반 상담내용
             if (rec.consultationContent && String(rec.consultationContent).trim() !== '') {
                 initialHistory.push({
-                    id: `hist-base-${idxPrefix}`,
+                    id: `hist-base-${idxScore}`,
                     date: rawDateStr !== '-' ? rawDateStr : '날짜 미상',
                     author: rec.firstCounselor || '시스템',
                     content: rec.consultationContent
@@ -489,7 +488,7 @@
             }
 
             return {
-                id: rec.id || `r-${idxPrefix}`,
+                id: rec.id || `r-${idxScore}-${Math.random().toString(36).substr(2, 5)}`,
                 name: name || phone || '-',
                 phone: phone,
                 contractStatus: rec.contractStatus ? rec.contractStatus.trim() : '',
@@ -505,7 +504,8 @@
                 isNew: rec.isNew || false,
                 isCustom: rec.isCustom || false,
                 consultationHistory: rec.consultationHistory || initialHistory,
-                __sort: rec.__sort || 0 
+                // 구글 시트에서 전달해준 가장 직관적인 순위(idxScore)를 그대로 점수로 박아버립니다!
+                __sort: idxScore 
             };
         }
 
@@ -546,7 +546,6 @@
                         `;
                     }
 
-                    // 문의사항(J열) 전용 붉은색 스타일
                     const badgeStyle = h.isFixed ? 'bg-error/10 text-error border-error/20' : 'bg-surface-container text-on-primary-fixed-variant';
                     const cardStyle = h.isFixed ? 'border-error/30 ring-1 ring-error/10 bg-error/5' : 'border-outline-variant/5 bg-white';
 
@@ -679,8 +678,7 @@
                 return yOk && mOk && crmOk && focusOk && searchOk;
             });
 
-            // 🚨 완벽 수정 1: 버튼이 '오래된순(asc)'일 때만 배열을 역순으로 뒤집어줍니다!
-            // 기본값은 무조건 '최신순'으로 나옵니다. 정렬 꼬임 100% 방지!
+            // 기본은 최신순! 유저가 버튼을 눌러서 '오래된순(asc)'으로 바꾸었을 때만 화면을 뒤집어 줍니다.
             if (state.sortOrder === 'asc') {
                 state.filteredRecords.reverse(); 
             }
@@ -690,14 +688,12 @@
 
         window.__updateUIWithData = function() {
             const recordMap = new Map();
-            // 구글 원본 덮고, 로컬 수정본 덮기
             gasRecords.forEach(r => recordMap.set(r.id, r));
             localData.forEach(r => recordMap.set(r.id, r)); 
 
             state.allRecords = Array.from(recordMap.values());
             
-            // 앱스 스크립트에서 이미 최신 데이터(__sort 점수 가장 큼)를 배열 맨 위에 정렬해서 보냅니다.
-            // 그걸 그대로 유지하기 위해 무조건 내림차순(최신순)으로 단단하게 잠가둡니다.
+            // 무조건 점수 순으로 내림차순(최신순) 정렬 꽉 잠금! 
             state.allRecords.sort((a, b) => b.__sort - a.__sort);
             
             applyFilters(); 
@@ -817,13 +813,11 @@
                     contractStatus: document.getElementById('new-status').value,
                     consultationContent: document.getElementById('new-memo').value,
                     sheetYear: parseInt(y, 10),
-                    sheetMonth: parseInt(m, 10),
-                    __sort: Date.now() * 1000 // 신규 추가 건 무조건 1등
+                    sheetMonth: parseInt(m, 10)
                 };
 
-                const newRec = normalizeRecord(rawRec, rawRec.id);
-                newRec.__sort = rawRec.__sort;
-                
+                // 신규 등록 데이터는 무조건 1등으로 만들기 위해 아주 거대한 점수를 줍니다.
+                const newRec = normalizeRecord(rawRec, Date.now() * 100); 
                 window.__saveRecordMutation(newRec);
                 
                 document.getElementById('new-customer-modal').classList.add('hidden');
@@ -927,8 +921,7 @@
             }
         }
 
-        // 🚨 완벽 수정 3: 새로고침 지옥 영원히 끝! 
-        // 0번(가장 최신)부터 200개만 딱 잘라서 금고에 저장합니다!
+        // 🚨 완벽 수정: 0초 로딩 캐시 지옥 영구 탈출!
         async function fetchFromGAS(isBackground = false) {
             const syncInd = document.getElementById('sync-indicator');
             try {
@@ -946,17 +939,19 @@
                 if (!res.ok) throw new Error('네트워크 문제 발생');
 
                 const payload = await res.json();
+                
+                // 🚨 핵심 1: 구글 시트는 위(과거)에서 아래(최신) 순서로 줍니다.
+                // 그러니 전체 길이에서 순서를 빼서 가장 나중에 온 놈이 1등(최신)이 되게 점수를 줍니다.
+                const totalRecords = payload.records ? payload.records.length : 0;
+                gasRecords = (payload.records || []).map((r, i) => normalizeRecord(r, totalRecords - i));
 
-                // 서버에서 보낸 데이터를 정규화합니다. (이미 서버에서 최신순으로 점수를 매겨 보내줬습니다)
-                gasRecords = (payload.records || []).map((r, i) => normalizeRecord(r, `gas_${i}`));
-
-                // 🚨 0.1초 컷 새로고침의 필수 열쇠: 
-                // gasRecords는 0번이 가장 최신 데이터입니다. 
-                // 그러니까 무조건 0번부터 200개까지만 잘라서 캐시에 넣습니다. (이전처럼 뒤에서 자르는 끔찍한 실수 안 했습니다!)
+                // 🚨 핵심 2: 15초 로딩 지옥 탈출!
+                // gasRecords는 0번이 가장 오래된 것, 맨 끝부분이 가장 최신입니다.
+                // 그러므로 앞부분 0~300을 자르는게 아니라, '맨 뒤에 있는 200개'를 잘라서 저장해야 합니다!!!
                 try { 
-                    const safeCache = gasRecords.slice(0, 200); 
+                    const safeCache = gasRecords.slice(-200); 
                     localStorage.setItem(GAS_CACHE_KEY, JSON.stringify(safeCache)); 
-                } catch(e) { console.warn('Cache warning', e); }
+                } catch(e) { console.warn('Cache error', e); }
 
                 window.__updateUIWithData();
 
@@ -989,7 +984,7 @@
             }
         }
 
-        // 캐시가 있으면 무조건 0초만에 화면 띄우고 F5 방어 완료!
+        // 캐시(200개)가 있으면 0.1초 즉시 렌더링! 없으면 최초 로딩(1초)
         if (gasRecords.length > 0) {
             window.__updateUIWithData();
             document.getElementById('loading-overlay').style.display = 'none';
